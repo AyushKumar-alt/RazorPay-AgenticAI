@@ -1,36 +1,205 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 NovaBazaar — Autonomous E-Commerce & Agentic Revenue Recovery Platform
 
-## Getting Started
+[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-agent--ai--six--iota.vercel.app-22c55e?style=for-the-badge&logo=vercel)](https://agent-ai-six-iota.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.2.8-blue?style=for-the-badge&logo=react)](https://react.dev/)
+[![Gemini API](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-8e44ad?style=for-the-badge&logo=google-cloud)](https://ai.google.dev/)
+[![Razorpay](https://img.shields.io/badge/Razorpay-Payment%20Links%20%26%20Webhooks-02042b?style=for-the-badge&logo=razorpay)](https://razorpay.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
-First, run the development server:
+> **NovaBazaar** is an end-to-end agentic e-commerce platform combining an **AI Buyer Shopping Assistant** with an **Autonomous Merchant Revenue Agent**. It bridges intelligent conversational commerce with deterministic merchant policy controls and real-time Razorpay payment recovery revalidation.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🌟 Key Highlights & Live Links
+
+* 🌐 **Production App URL**: [https://agent-ai-six-iota.vercel.app](https://agent-ai-six-iota.vercel.app)
+* 📊 **Merchant Revenue Dashboard**: [https://agent-ai-six-iota.vercel.app/revenue](https://agent-ai-six-iota.vercel.app/revenue)
+* 💳 **Payment Gateway Integration**: Razorpay Test Mode Payment Links & Cryptographic HMAC SHA-256 Webhooks
+* 🛡️ **Security Model**: Server-authoritative Single Source of Truth — client state spoofing strictly disallowed.
+
+---
+
+## 🏛️ System Architecture
+
+NovaBazaar is built around a **Dual Agentic Architecture** separating buyer-side conversational discovery from merchant-side autonomous revenue recovery.
+
+```mermaid
+flowchart TD
+    subgraph BuyerExperience["🛒 Buyer Shopping Experience"]
+        A[Customer Utterance / Voice Input] --> B[Intent Extraction Engine]
+        B --> C[BuyerAgent - Gemini LLM Tool Loop]
+        C --> D[Catalog Search & Grounding Check]
+        D --> E[Pair Companion Accessory Recommendation]
+        E --> F[Unified Cart Management]
+        F --> G[Purchase Proposal Generation]
+        G --> H[Human Approval Gate]
+        H --> I[Razorpay Test Checkout Modal]
+    end
+
+    subgraph MerchantExperience["💼 Merchant Revenue Recovery Experience"]
+        J[Failed Payment / Abandoned Cart Event] --> K[RevenueAgent Transaction Analysis]
+        K --> L{Deterministic Policy Engine Bounds Check}
+        L -- Disallowed / Exceeds Ceiling --> M[🚫 Policy Rejected / Abstained]
+        L -- Allowed & > ₹500 --> N[⚠️ Human Merchant Approval Required]
+        L -- Allowed & ≤ ₹500 --> O[⚡ Auto-Action Eligible]
+        N -- Merchant Sign-off --> P[RevenueActionTool Execution]
+        O --> P
+        P --> Q[Razorpay Payment Link Creation]
+        Q --> R[Customer Receives Link rzp.io]
+        R --> S[Customer Pays via Razorpay Test Checkout]
+        S --> T[Razorpay payment_link.paid Webhook]
+        T --> U[HMAC SHA-256 Signature Verification & Idempotency Check]
+        U --> V[PaymentStore State Transition: FAILED ➔ RECOVERED]
+        V --> W[PAYMENT_RECOVERED Audit Log]
+        W --> X[Dashboard 3s Polling Detection ➔ 🟢 PAYMENT RECOVERED]
+    end
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚡ Core Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. 🛒 Autonomous AI Buyer Shopping Assistant
+* **Natural Language Shopping**: Extracts purchase intent, capacity, material, category, and budget constraints from conversational text or speech.
+* **Paired Companion Accessory Recommendations**: Automatically suggests complementary accessories (e.g. recommending an aluminum headphone stand for over-ear headphones).
+* **Instant Cart Operations**: AI tool registry directly executes cart additions, updates, removals, and multi-item checkout proposals.
+* **Human Approval Gate**: Every purchase proposal requires explicit customer sign-off before financial orders are instantiated.
 
-## Learn More
+### 2. 💼 Merchant Revenue Recovery Agent
+* **Autonomous Opportunity Diagnosis**: Continuously inspects merchant transactions, diagnosing failure causes (e.g. gateway timeouts, OTP expirations, abandoned carts).
+* **Deterministic Policy Engine**: Enforces strict financial rules overriding any LLM hallucination risk:
+  * 🛑 **Discount Ceiling**: Maximum 10% discount allowance.
+  * 🛑 **Retry Cooldown**: 30-minute minimum cooldown between payment retry attempts.
+  * 🛑 **Max Retries**: Hard limit of 2 retry attempts per transaction.
+  * 🛑 **Human Sign-off Ceiling**: Any transaction or recovery exceeding **₹500** strictly requires human merchant approval.
+* **Server-Authoritative Razorpay Payment Links**: Generates real Razorpay recovery payment links (`https://rzp.io/rzp/...`) for approved opportunities.
+* **Real-Time Webhook Revalidation (3-Second Polling)**: The dashboard polls `/api/revenue/status` every 3 seconds while a recovery link is pending (`LINK_CREATED` / `PAYMENT_PENDING`). When Razorpay's `payment_link.paid` webhook arrives, backend state transitions from `FAILED` to `RECOVERED`, automatically updating the UI to **`🟢 PAYMENT RECOVERED`** without full page reloads.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔄 Merchant Lifecycle States
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Every transaction card on the Merchant Dashboard clearly displays its progression:
 
-## Deploy on Vercel
+| Lifecycle State | Badge | Trigger / Description |
+| :--- | :--- | :--- |
+| **Opportunity Identified** | `Opportunity Identified` | Failure or cart abandonment detected by Revenue Agent. |
+| **Approval Required** | `⚠️ Approval Required (>₹500)` | Amount exceeds ₹500 threshold; requires merchant sign-off. |
+| **Auto-Action Eligible** | `⚡ Auto-Action Eligible (≤₹500)` | Amount is ≤₹500; auto-executable within policy bounds. |
+| **Policy Rejected** | `🚫 Policy Rejected` | Action violates policy bounds (e.g., cooldown active or max retries exceeded). |
+| **Payment Pending** | `🟡 PAYMENT PENDING` | Razorpay Payment Link generated; awaiting customer checkout payment. |
+| **Payment Recovered** | `🟢 PAYMENT RECOVERED` | Verified via Razorpay `payment_link.paid` webhook; displays Razorpay Payment ID & timestamp. |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔒 Security & Single Source of Truth
+
+* **Cryptographic HMAC SHA-256 Webhook Verification**: All incoming webhooks pass through `RazorpayService.verifyWebhookSignature`, comparing `x-razorpay-signature` against request raw body using timing-safe buffer comparison.
+* **Webhook Idempotency Guarantee**: Prevents duplicate webhook processing using `PaymentStore.hasProcessedWebhookEvent`.
+* **Zero Client Status Spoofing**: Clicking or opening a Razorpay link ONLY reflects `PAYMENT PENDING`. Transition to `RECOVERED` occurs strictly server-side upon verified webhook receipt.
+* **Rupee Currency Standard**: All financial values in the UI are formatted natively in Indian Rupees (**₹699**), preventing paise display clutter (69,900 paise kept strictly in audit metadata).
+
+---
+
+## 🛠️ API Reference
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/revenue/analyze` | `POST` | Executes `RevenueAgent` across synthetic merchant records and evaluates policy bounds. |
+| `/api/agent/revenue/action` | `POST` | Executes `RevenueActionTool`, calling `RazorpayService.createRecoveryPaymentLink`. |
+| `/api/revenue/status` | `GET` | Returns authoritative live transaction statuses from `PaymentStore` & `AuditService` for 3s polling. |
+| `/api/payment/webhook` | `POST` | Processes Razorpay webhook events (`payment_link.paid`, `payment.captured`, `payment.failed`). |
+| `/api/payment/create-order` | `POST` | Creates Razorpay order for approved buyer purchase proposals. |
+| `/api/payment/verify` | `POST` | Verifies buyer checkout HMAC signatures server-side. |
+| `/api/intent` | `POST` | Extracts purchase intent and constraints from buyer messages. |
+| `/api/agent/buyer` | `POST` | Runs `BuyerAgent` Gemini tool loop for product recommendation and grounding. |
+| `/api/catalog/products` | `GET` | Retrieves catalog products with category filtering. |
+
+---
+
+## 💻 Local Development Setup
+
+### 1. Clone & Install Dependencies
+```bash
+git clone https://github.com/AyushKumar-alt/RazorPay-AgenticAI.git
+cd RazorPay-AgenticAI
+npm install
+```
+
+### 2. Configure Environment Variables
+Create a `.env.local` file in the root directory:
+```env
+# Google Gemini API Key
+GEMINI_API_KEY=AIzaSy...
+
+# Razorpay Test Mode Credentials
+RAZORPAY_KEY_ID=rzp_test_...
+RAZORPAY_KEY_SECRET=...
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_...
+RAZORPAY_WEBHOOK_SECRET=...
+```
+
+### 3. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🧪 Automated Test Suites
+
+NovaBazaar includes extensive unit and integration test coverage across all agentic and payment systems:
+
+```bash
+# Run Real-Time Dashboard & Webhook Polling Test Suite
+npx tsx lib/agent/revenue/revenue-dashboard-realtime.test.ts
+
+# Run Revenue Action Tool Tests
+npx tsx lib/agent/revenue/revenue-action-tool.test.ts
+
+# Run Revenue Agent Unit & Integration Tests
+npx tsx lib/agent/revenue/revenue.agent.test.ts
+npx tsx lib/agent/revenue/revenue-integration.test.ts
+
+# Run Razorpay Webhook & Payment Link Tests
+npx tsx lib/payment/webhook.test.ts
+npx tsx lib/payment/payment-link.test.ts
+npx tsx lib/payment/payment.test.ts
+
+# Run Buyer Agent & Purchase Proposal Tests
+npx tsx lib/agent/buyer/buyer.test.ts
+npx tsx lib/purchase/purchase.test.ts
+```
+
+### Test Coverage Summary
+* ✅ **19/19 Passed**: Real-Time Dashboard & Webhook Polling Suite
+* ✅ **24/24 Passed**: Revenue Action Tool Suite
+* ✅ **12/12 Passed**: Revenue Agent Policy Evaluation Suite
+* ✅ **8/8 Passed**: Revenue Integration & Security Suite
+* ✅ **10/10 Passed**: Razorpay Webhook Signature & State Machine Suite
+* ✅ **10/10 Passed**: Razorpay Payment Link Creation Suite
+* ✅ **29/29 Passed**: Buyer Agent & Purchase Proposal Suite
+
+---
+
+## 🚢 Production Build & Deployment
+
+NovaBazaar is optimized for deployment on Vercel:
+
+```bash
+# Typecheck & Build Production Bundle
+npm run build
+
+# Deploy to Vercel Production
+npx vercel --prod
+```
+
+Live Production Deployment: **[https://agent-ai-six-iota.vercel.app](https://agent-ai-six-iota.vercel.app)**
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for details.
