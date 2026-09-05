@@ -1,7 +1,7 @@
 import { CatalogService } from '@/lib/catalog/catalog.service';
 import { AuditService } from '@/lib/audit/audit.service';
 import { CreateProposalInputSchema, PurchaseProposalSchema } from './purchase.schema';
-import { PurchaseProposal } from '@/types/purchase';
+import { PurchaseProposal, ProposalItem } from '@/types/purchase';
 
 export class PurchaseService {
   private static proposals = new Map<string, PurchaseProposal>();
@@ -26,7 +26,7 @@ export class PurchaseService {
       };
     }
 
-    const { merchantId, productId, quantity } = parseResult.data;
+    const { merchantId, productId, quantity, items } = parseResult.data;
 
     // 1. Verify merchant
     const merchant = CatalogService.getMerchant(merchantId);
@@ -40,34 +40,73 @@ export class PurchaseService {
       };
     }
 
-    // 2. Verify product
-    const product = CatalogService.getProductById(productId);
-    if (!product) {
-      return {
-        success: false,
-        error: {
-          code: 'PRODUCT_NOT_FOUND',
-          message: `Product with ID '${productId}' was not found.`,
-        },
-      };
+    // Determine items to process
+    let requestedItems: { productId: string; quantity: number }[] = [];
+    if (items && items.length > 0) {
+      requestedItems = items;
+    } else if (productId && quantity) {
+      requestedItems = [{ productId, quantity }];
     }
 
-    // 3. Verify authoritative stock
-    const inventory = CatalogService.checkInventory(productId);
-    if (!inventory.available || inventory.stock < quantity) {
-      return {
-        success: false,
-        error: {
-          code: 'INSUFFICIENT_STOCK',
-          message: `Product '${product.name}' has insufficient stock (${inventory.stock} available, ${quantity} requested).`,
-        },
-      };
+    const proposalItems: ProposalItem[] = [];
+    let itemsSubtotalPaise = 0;
+    let maxDeliveryFeePaise = 0;
+
+    for (const reqItem of requestedItems) {
+      // 2. Verify product
+      const product = CatalogService.getProductById(reqItem.productId);
+      if (!product) {
+        return {
+          success: false,
+          error: {
+            code: 'PRODUCT_NOT_FOUND',
+            message: `Product with ID '${reqItem.productId}' was not found.`,
+          },
+        };
+      }
+
+      // 3. Verify authoritative stock
+      const inventory = CatalogService.checkInventory(reqItem.productId);
+      if (!inventory.available || inventory.stock < reqItem.quantity) {
+        return {
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_STOCK',
+            message: `Product '${product.name}' has insufficient stock (${inventory.stock} available, ${reqItem.quantity} requested).`,
+          },
+        };
+      }
+
+      const unitPricePaise = product.pricePaise;
+      const subtotalPaise = unitPricePaise * reqItem.quantity;
+      itemsSubtotalPaise += subtotalPaise;
+
+      if (product.deliveryInfo.shippingFeePaise > maxDeliveryFeePaise) {
+        maxDeliveryFeePaise = product.deliveryInfo.shippingFeePaise;
+      }
+
+      proposalItems.push({
+        productId: product.id,
+        productName: product.name,
+        quantity: reqItem.quantity,
+        unitPricePaise,
+        subtotalPaise,
+      });
     }
 
-    // 4. Calculate authoritative price & delivery fee using integer paise
-    const unitPricePaise = product.pricePaise;
-    const deliveryFeePaise = product.deliveryInfo.shippingFeePaise;
-    const totalPaise = unitPricePaise * quantity + deliveryFeePaise;
+    const deliveryFeePaise = maxDeliveryFeePaise;
+    const totalPaise = itemsSubtotalPaise + deliveryFeePaise;
+
+    const primaryItem = proposalItems[0];
+    const totalQuantity = proposalItems.reduce((sum, i) => sum + i.quantity, 0);
+
+    const productNameSummary =
+      proposalItems.length === 1
+        ? primaryItem.productName
+        : `${primaryItem.productName} + ${proposalItems.length - 1} more item(s)`;
+
+    const unitPriceSummary =
+      proposalItems.length === 1 ? primaryItem.unitPricePaise : itemsSubtotalPaise;
 
     const createdAtDate = new Date();
     const expiresAtDate = new Date(createdAtDate.getTime() + this.EXPIRATION_MINUTES * 60 * 1000);
@@ -77,10 +116,11 @@ export class PurchaseService {
     const rawProposal: PurchaseProposal = {
       proposalId,
       merchantId: merchant.id,
-      productId: product.id,
-      productName: product.name,
-      quantity,
-      unitPricePaise,
+      items: proposalItems,
+      productId: primaryItem.productId,
+      productName: productNameSummary,
+      quantity: totalQuantity,
+      unitPricePaise: unitPriceSummary,
       deliveryFeePaise,
       totalPaise,
       currency: 'INR',
@@ -97,9 +137,10 @@ export class PurchaseService {
     this.proposals.set(proposalId, proposal);
 
     // Record audit event
-    AuditService.recordEvent('PROPOSAL_CREATED', proposalId, merchant.id, product.id, {
-      quantity,
-      unitPricePaise,
+    AuditService.recordEvent('PROPOSAL_CREATED', proposalId, merchant.id, primaryItem.productId, {
+      itemsCount: proposalItems.length,
+      quantity: totalQuantity,
+      unitPricePaise: unitPriceSummary,
       deliveryFeePaise,
       totalPaise,
     });
@@ -108,6 +149,7 @@ export class PurchaseService {
       success: true,
       proposal,
     };
+
   }
 
   /**

@@ -12,9 +12,14 @@ export class WebSpeechVoiceProvider extends BaseVoiceProvider {
 
   public isSupported(): boolean {
     if (typeof window === 'undefined') return false;
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    return !!SpeechRecognition;
+    try {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      return !!SpeechRecognition;
+    } catch (err) {
+      console.warn('WebSpeechVoiceProvider isSupported check failed:', err);
+      return false;
+    }
   }
 
   private setupVisibilityListener(): void {
@@ -29,17 +34,22 @@ export class WebSpeechVoiceProvider extends BaseVoiceProvider {
 
   private getRecognitionInstance(): any {
     if (typeof window === 'undefined') return null;
-    if (!this.recognition) {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        this.recognition = new SpeechRecognition();
-        this.recognition.lang = this.config.lang || 'en-US';
-        this.recognition.continuous = !!this.config.continuous;
-        this.recognition.interimResults = !!this.config.interimResults;
+    try {
+      if (!this.recognition) {
+        const SpeechRecognition =
+          (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          this.recognition = new SpeechRecognition();
+          this.recognition.lang = this.config.lang || 'en-US';
+          this.recognition.continuous = !!this.config.continuous;
+          this.recognition.interimResults = !!this.config.interimResults;
+        }
       }
+      return this.recognition;
+    } catch (err) {
+      console.warn('Failed to get SpeechRecognition instance:', err);
+      return null;
     }
-    return this.recognition;
   }
 
   public startListening(
@@ -75,6 +85,7 @@ export class WebSpeechVoiceProvider extends BaseVoiceProvider {
     };
 
     rec.onerror = (event: any) => {
+      console.warn('WebSpeech API recognition error:', event.error || event);
       onError({
         code: 'SPEECH_RECOGNITION_ERROR',
         message: event.error || 'Speech recognition error occurred.',
@@ -84,6 +95,7 @@ export class WebSpeechVoiceProvider extends BaseVoiceProvider {
     try {
       rec.start();
     } catch (err: any) {
+      console.warn('WebSpeech rec.start() failed:', err?.message || err);
       onError({
         code: 'START_FAILED',
         message: err?.message || 'Failed to start speech recognition.',

@@ -4,7 +4,8 @@ export type PaymentStatus =
   | 'AUTHORIZED'
   | 'CAPTURED'
   | 'FAILED'
-  | 'VERIFICATION_FAILED';
+  | 'VERIFICATION_FAILED'
+  | 'RECOVERED';
 
 export interface PaymentTransaction {
   transactionId: string;
@@ -61,3 +62,33 @@ export interface VerifyPaymentResponse {
     message: string;
   };
 }
+
+export interface CreateRecoveryPaymentLinkInput {
+  sourceOrderId: string;
+  amountPaise: number;
+  description: string;
+  merchantId?: string;
+  productId?: string;
+  customerId?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerContact?: string;
+  notes?: Record<string, string>;
+}
+
+export interface CreateRecoveryPaymentLinkResponse {
+  success: boolean;
+  paymentLink?: {
+    id: string;
+    shortUrl: string;
+    amountPaise: number;
+    currency: 'INR';
+    status: string;
+    description: string;
+  };
+  error?: {
+    code: string;
+    message: string;
+  };
+}
+

@@ -9,13 +9,17 @@ import { Product } from '@/types/catalog';
 import { PaymentTransaction, PaymentStatus } from '@/types/payment';
 import { formatRupees } from '@/lib/money/money';
 import { CatalogService } from '@/lib/catalog/catalog.service';
+import { getCart, removeFromCart, updateCartQuantity, Cart } from '@/lib/cart/cart.service';
+import { CartPanel } from '@/components/catalog/CartPanel';
+import { ChatShoppingPanel } from '@/components/catalog/ChatShoppingPanel';
+
 
 // Phase 7 imports
 import { WebSpeechVoiceProvider } from '@/lib/voice/webspeech.provider';
 import { detectWakeWord } from '@/lib/voice/wakeword';
 import { SessionService } from '@/lib/session/session.service';
 import { AgentSession } from '@/types/agent';
-import { AgentHeader, AgentPanel } from '@/components/agent';
+import { AgentHeader, AgentPanel, RevenueRecoveryWidget } from '@/components/agent';
 import {
   resolveProductReference,
   classifyUtterance,
@@ -60,28 +64,114 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showTrace, setShowTrace] = useState<boolean>(false);
 
+  // Live Cart State Sync
+  const [cartState, setCartState] = useState<Cart>(getCart());
+
+  const handleRemoveFromCart = (productId: string) => {
+    const updated = removeFromCart(productId);
+    setCartState({ ...updated });
+  };
+
+  const handleUpdateCartQuantity = (productId: string, newQty: number) => {
+    const updated = updateCartQuantity(productId, newQty);
+    setCartState({ ...updated });
+  };
+
+  const handleCartUpdateFromChat = (newCart: Cart) => {
+    setCartState({ ...newCart });
+  };
+
+  const safeUpdateSessionState = (newState: any) => {
+    if (!session) return;
+    try {
+      sessionServiceRef.current.updateState(session.sessionId, newState);
+      setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
+    } catch (e) {
+      console.warn(`[Session Notice] Transition to ${newState} skipped:`, e);
+    }
+  };
+
+  const handleProposalCreatedFromChat = (newProposal: PurchaseProposal) => {
+    setProposal(newProposal);
+    if (session) {
+      sessionServiceRef.current.setProposal(session.sessionId, newProposal);
+      safeUpdateSessionState('PROPOSAL_READY');
+      safeUpdateSessionState('AWAITING_HUMAN_APPROVAL');
+    }
+  };
+
+  const handleCheckoutCartFromButton = async () => {
+    if (cartState.items.length === 0) return;
+    setProposalLoading(true);
+    setErrorMsg(null);
+    setPaymentTransaction(null);
+    setPaymentStatus('NONE');
+
+    safeUpdateSessionState('PRODUCT_SELECTED');
+    safeUpdateSessionState('PROPOSAL_READY');
+    safeUpdateSessionState('AWAITING_HUMAN_APPROVAL');
+
+    try {
+      const propRes = await fetch('/api/purchase/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: 'merchant_aquamart',
+          items: cartState.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      const propData = await propRes.json();
+      if (!propData.success) {
+        throw new Error(propData.error?.message || 'Failed to create proposal');
+      }
+
+      setProposal(propData.proposal);
+      if (session) {
+        sessionServiceRef.current.setProposal(session.sessionId, propData.proposal);
+        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to create proposal.');
+    } finally {
+      setProposalLoading(false);
+    }
+  };
+
+
   // --- PHASE 7E MULTI-TURN VOICE & SESSION ORCHESTRATION ---
   const sessionServiceRef = useRef<SessionService>(new SessionService());
   const voiceProviderRef = useRef<WebSpeechVoiceProvider | null>(null);
   const [session, setSession] = useState<AgentSession | null>(null);
-  const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
   const [isVoiceSupported, setIsVoiceSupported] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
-  const isProcessingSpeechRef = useRef<boolean>(false);
+  const [voiceInputText, setVoiceInputText] = useState<string>('');
 
-  // Initialize AgentSession and VoiceProvider on Client Mount
+  // Initialize AgentSession and VoiceProvider on Client Mount (Voice is strictly optional & isolated)
   useEffect(() => {
     const s = sessionServiceRef.current.createSession('novabazaar_session_001');
     setSession(s);
 
     if (typeof window !== 'undefined') {
-      const provider = new WebSpeechVoiceProvider({
-        lang: 'en-US',
-        continuous: false,
-        interimResults: true,
-      });
-      voiceProviderRef.current = provider;
-      setIsVoiceSupported(provider.isSupported());
+      try {
+        const provider = new WebSpeechVoiceProvider({
+          lang: 'en-US',
+          continuous: false,
+          interimResults: true,
+        });
+        voiceProviderRef.current = provider;
+        const supported = provider.isSupported();
+        setIsVoiceSupported(supported);
+        if (!supported) {
+          console.warn('Voice Agent Info: Speech recognition is not supported in this browser. Text-based features remain fully operational.');
+        }
+      } catch (err) {
+        console.warn('Voice Agent Info: Failed to initialize voice provider. Falling back to text-only mode.', err);
+        setIsVoiceSupported(false);
+      }
     }
   }, []);
 
@@ -135,604 +225,42 @@ export default function Home() {
     setMessage(promptText);
   };
 
-  // --- PHASE 7E MULTI-TURN CONVERSATIONAL PIPELINE ---
-  const executeVoiceAgentPipeline = async (userPrompt: string) => {
-    if (!session || !userPrompt.trim() || isProcessingSpeechRef.current) return;
-    isProcessingSpeechRef.current = true;
-
-    try {
-      const utteranceType = classifyUtterance(userPrompt);
-
-      // CASE A: VOICE PAYMENT AUTHORIZATION ATTEMPT (STRICT SECURITY BOUNDARY ENFORCED)
-      if (utteranceType === 'AUTHORIZATION_ATTEMPT') {
-        sessionServiceRef.current.addTurn(session.sessionId, {
-          actor: 'USER',
-          input: userPrompt,
-          interpretedIntent: null,
-          toolCalls: [],
-          observations: [],
-          response: '',
-        });
-
-        const securityMsg =
-          'The purchase proposal is ready. Please click Approve & Pay on the screen to authorize the payment.';
-
-        sessionServiceRef.current.addTurn(session.sessionId, {
-          actor: 'AGENT',
-          input: '',
-          interpretedIntent: null,
-          toolCalls: [],
-          observations: ['Financial Security Gate Blocked Voice Payment Attempt'],
-          response: securityMsg,
-        });
-
-        if (proposal && proposal.status === 'PENDING_APPROVAL') {
-          sessionServiceRef.current.updateState(session.sessionId, 'AWAITING_HUMAN_APPROVAL');
-        }
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-        voiceProviderRef.current?.speak(securityMsg);
-        isProcessingSpeechRef.current = false;
-        return;
-      }
-
-      // CASE B: PRODUCT QUESTION ("What's the second one?")
-      if (utteranceType === 'PRODUCT_QUESTION') {
-        const res = resolveProductReference(
-          userPrompt,
-          session.currentRecommendations,
-          session.selectedProduct
-        );
-
-        if (res.product) {
-          const price = formatRupees(res.product.pricePaise);
-          const answer = `The ${
-            res.resolvedIndex !== null ? `option #${res.resolvedIndex + 1}` : 'product'
-          } is ${res.product.name}. It's ${price} and currently in stock.`;
-
-          sessionServiceRef.current.addTurn(session.sessionId, {
-            actor: 'USER',
-            input: userPrompt,
-            interpretedIntent: null,
-            toolCalls: [],
-            observations: [],
-            response: '',
-          });
-
-          sessionServiceRef.current.addTurn(session.sessionId, {
-            actor: 'AGENT',
-            input: '',
-            interpretedIntent: null,
-            toolCalls: [
-              {
-                tool: 'getProduct',
-                input: { productId: res.product.id },
-                resultSummary: `Inspected ${res.product.name}`,
-              },
-            ],
-            observations: [res.product.description],
-            response: answer,
-          });
-
-          sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-          voiceProviderRef.current?.speak(answer, () => {
-            sessionServiceRef.current?.updateState(session.sessionId, 'AWAITING_SELECTION');
-            setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-          });
-          isProcessingSpeechRef.current = false;
-          return;
-        } else {
-          const fallback =
-            "I'm not sure which product you mean. Please select one on screen or tell me its number.";
-          voiceProviderRef.current?.speak(fallback);
-          isProcessingSpeechRef.current = false;
-          return;
-        }
-      }
-
-      // CASE C: ATTRIBUTE INQUIRY ("Is it wireless?", "How much is it?", "Is it in stock?")
-      if (utteranceType === 'ATTRIBUTE_INQUIRY') {
-        const res = resolveProductReference(
-          userPrompt,
-          session.currentRecommendations,
-          session.selectedProduct
-        );
-        const prod =
-          res.product ||
-          session.selectedProduct ||
-          (session.currentRecommendations?.recommendations[0]
-            ? CatalogService.getProductById(session.currentRecommendations.recommendations[0].productId)
-            : null);
-
-        if (prod) {
-          let answer = '';
-          const lowerU = userPrompt.toLowerCase();
-
-          if (lowerU.includes('wireless')) {
-            const isWireless =
-              prod.name.toLowerCase().includes('wireless') ||
-              prod.description.toLowerCase().includes('wireless');
-            answer = isWireless ? `Yes, ${prod.name} is wireless.` : `No, ${prod.name} is not wireless.`;
-          } else if (lowerU.includes('how much') || lowerU.includes('cost') || lowerU.includes('price')) {
-            answer = `${prod.name} is ${formatRupees(prod.pricePaise)}.`;
-          } else if (lowerU.includes('stock')) {
-            answer =
-              prod.stock > 0
-                ? `Yes, ${prod.name} is in stock with ${prod.stock} units available.`
-                : `Sorry, ${prod.name} is currently out of stock.`;
-          } else if (lowerU.includes('material')) {
-            answer = prod.attributes.material
-              ? `${prod.name} is made of ${String(prod.attributes.material).replace('_', ' ')}.`
-              : `${prod.name} is crafted from high quality materials.`;
-          } else {
-            answer = `${prod.name} is ${formatRupees(prod.pricePaise)}. ${prod.description}`;
-          }
-
-          sessionServiceRef.current.addTurn(session.sessionId, {
-            actor: 'USER',
-            input: userPrompt,
-            interpretedIntent: null,
-            toolCalls: [],
-            observations: [],
-            response: '',
-          });
-
-          sessionServiceRef.current.addTurn(session.sessionId, {
-            actor: 'AGENT',
-            input: '',
-            interpretedIntent: null,
-            toolCalls: [
-              {
-                tool: 'getProduct',
-                input: { productId: prod.id },
-                resultSummary: `Checked attributes for ${prod.name}`,
-              },
-            ],
-            observations: [prod.description],
-            response: answer,
-          });
-
-          sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-          voiceProviderRef.current?.speak(answer, () => {
-            sessionServiceRef.current?.updateState(session.sessionId, 'AWAITING_SELECTION');
-            setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-          });
-          isProcessingSpeechRef.current = false;
-          return;
-        } else {
-          const fallback =
-            "I couldn't identify which product you are asking about. Please select one on screen.";
-          voiceProviderRef.current?.speak(fallback);
-          isProcessingSpeechRef.current = false;
-          return;
-        }
-      }
-
-      // CASE D: VOICE PRODUCT SELECTION ("I'll take the second one", "Select option 2")
-      if (utteranceType === 'PRODUCT_SELECTION') {
-        const res = resolveProductReference(
-          userPrompt,
-          session.currentRecommendations,
-          session.selectedProduct
-        );
-
-        if (res.product) {
-          sessionServiceRef.current.addTurn(session.sessionId, {
-            actor: 'USER',
-            input: userPrompt,
-            interpretedIntent: null,
-            toolCalls: [],
-            observations: [],
-            response: '',
-          });
-
-          sessionServiceRef.current.updateState(session.sessionId, 'PRODUCT_SELECTED');
-          sessionServiceRef.current.updateState(session.sessionId, 'PROPOSAL_READY');
-          sessionServiceRef.current.updateState(session.sessionId, 'AWAITING_HUMAN_APPROVAL');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-          // Create purchase proposal
-          await handleCreateProposal(res.product.id);
-
-          const selectionMsg = `Got it. I've prepared the purchase proposal for ${res.product.name}. Please review the total on screen and approve it when you're ready.`;
-
-          sessionServiceRef.current.addTurn(session.sessionId, {
-            actor: 'AGENT',
-            input: '',
-            interpretedIntent: null,
-            toolCalls: [
-              {
-                tool: 'createProposal',
-                input: { productId: res.product.id },
-                resultSummary: `Prepared proposal for ${res.product.name}`,
-              },
-            ],
-            observations: ['Proposal Created. Awaiting Human Approval.'],
-            response: selectionMsg,
-          });
-
-          sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-          voiceProviderRef.current?.speak(selectionMsg, () => {
-            sessionServiceRef.current?.updateState(session.sessionId, 'AWAITING_HUMAN_APPROVAL');
-            setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-          });
-          isProcessingSpeechRef.current = false;
-          return;
-        } else {
-          const fallback =
-            "I'm not sure which product you want to select. Please select one on screen or tell me its number.";
-          voiceProviderRef.current?.speak(fallback);
-          isProcessingSpeechRef.current = false;
-          return;
-        }
-      }
-
-      // CASE E: PRICE REFINEMENT ("Show me something cheaper")
-      if (utteranceType === 'PRICE_REFINEMENT') {
-        let lowestPrice = Infinity;
-        if (session.currentRecommendations?.recommendations) {
-          session.currentRecommendations.recommendations.forEach((r) => {
-            const p = CatalogService.getProductById(r.productId);
-            if (p && p.pricePaise < lowestPrice) lowestPrice = p.pricePaise;
-          });
-        }
-
-        // Authoritatively resolve category from session state
-        const activeCategory =
-          session.currentIntent?.category ||
-          intent?.category ||
-          (session.currentRecommendations?.recommendations[0]
-            ? CatalogService.getProductById(session.currentRecommendations.recommendations[0].productId)?.category
-            : null);
-
-        if (!activeCategory && lowestPrice === Infinity) {
-          const fallbackMsg = "I'm not sure which item you'd like a cheaper alternative for. Could you tell me what product you're looking for?";
-          voiceProviderRef.current?.speak(fallbackMsg);
-          isProcessingSpeechRef.current = false;
-          return;
-        }
-
-        const sessionMaxPaise = session.currentIntent?.budget?.maxPaise;
-        const stateMaxPaise = intent?.budget?.maxPaise;
-        const currentMaxPaise = sessionMaxPaise !== undefined ? sessionMaxPaise : stateMaxPaise;
-
-        const newMaxBudget =
-          lowestPrice !== Infinity
-            ? lowestPrice - 100
-            : currentMaxPaise !== undefined
-            ? currentMaxPaise - 10000
-            : 80000;
-
-        const refinedIntent: PurchaseIntent = {
-          category: (activeCategory as PurchaseIntent['category']) || undefined,
-          constraints: session.currentIntent?.constraints || intent?.constraints || {},
-          preferences: session.currentIntent?.preferences || intent?.preferences || {},
-          budget: { maxPaise: newMaxBudget },
-          missingInformation: [],
-          confidence: 1,
-        };
-
-        sessionServiceRef.current.updateState(session.sessionId, 'SEARCHING');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-        const buyerRes = await fetch('/api/agent/buyer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ intent: refinedIntent, userMessage: userPrompt }),
-        });
-        const buyerData = await buyerRes.json();
-
-        if (
-          buyerData.success &&
-          buyerData.recommendation &&
-          buyerData.recommendation.recommendations.length > 0
-        ) {
-          const recs: BuyerRecommendation = buyerData.recommendation;
-          sessionServiceRef.current.setRecommendations(session.sessionId, recs);
-          setRecommendation(recs);
-
-          const answer = `I found cheaper alternatives below ${formatRupees(
-            lowestPrice
-          )}. I've updated them on your screen.`;
-          sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-          voiceProviderRef.current?.speak(answer, () => {
-            sessionServiceRef.current?.updateState(session.sessionId, 'AWAITING_SELECTION');
-            setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-          });
-        } else {
-          const answer = `I searched NovaBazaar, but couldn't find a suitable option cheaper than ${formatRupees(
-            lowestPrice
-          )}.`;
-          sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-          voiceProviderRef.current?.speak(answer, () => {
-            sessionServiceRef.current?.updateState(session.sessionId, 'AWAITING_SELECTION');
-            setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-          });
-        }
-        isProcessingSpeechRef.current = false;
-        return;
-      }
-
-      // SYNC RECOGNIZED SPEECH TO SEARCH INPUT BOX
-      setMessage(userPrompt);
-
-      const normalizedPrompt = userPrompt.trim().toLowerCase();
-
-      // CASE G1: CONVERSATIONAL GREETINGS & GENERAL TALK ("hello", "how are you", "how are you doing")
-      const isGreeting =
-        /^(hello|hi|hey|how\s+are\s+you|how\s+are\s+you\s+doing|good\s+morning|good\s+afternoon|good\s+evening)\b/i.test(normalizedPrompt) &&
-        !/\b(mouse|mat|bottle|earbuds|backpack|buy|find|search|show|get|under|cheap|wireless|different|other)\b/i.test(normalizedPrompt);
-
-      if (isGreeting) {
-        const greetingResponse =
-          "Hello Ayush, how are you doing? How can I help you? What would you like to purchase? I am here to assist you.";
-        sessionServiceRef.current.addTurn(session.sessionId, {
-          actor: 'USER',
-          input: userPrompt,
-          interpretedIntent: null,
-          toolCalls: [],
-          observations: [],
-          response: '',
-        });
-        sessionServiceRef.current.addTurn(session.sessionId, {
-          actor: 'AGENT',
-          input: '',
-          interpretedIntent: null,
-          toolCalls: [],
-          observations: [],
-          response: greetingResponse,
-        });
-        sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-        voiceProviderRef.current?.speak(greetingResponse, () => {
-          sessionServiceRef.current?.updateState(session.sessionId, 'LISTENING');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-        });
-        isProcessingSpeechRef.current = false;
-        return;
-      }
-
-      // CASE G2: CATALOG BROWSE REQUESTS ("show me all products", "show catalog", "nothing on screen")
-      const isCatalogRequest =
-        /\b(all products|listed products|catalogue|catalog|everything|show products|nothing on screen)\b/i.test(normalizedPrompt);
-
-      if (isCatalogRequest) {
-        setRecommendation(null);
-        setIntent(null);
-        setActiveCategory('all');
-        fetchCategoryProducts('all');
-        const catalogMsg =
-          "Here are all the curated products currently listed in the NovaBazaar catalog. Select any product to request a purchase proposal.";
-        sessionServiceRef.current.addTurn(session.sessionId, {
-          actor: 'USER',
-          input: userPrompt,
-          interpretedIntent: null,
-          toolCalls: [],
-          observations: ['Displayed full NovaBazaar catalog'],
-          response: catalogMsg,
-        });
-        sessionServiceRef.current.addTurn(session.sessionId, {
-          actor: 'AGENT',
-          input: '',
-          interpretedIntent: null,
-          toolCalls: [],
-          observations: ['Displayed full NovaBazaar catalog'],
-          response: catalogMsg,
-        });
-        sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-        voiceProviderRef.current?.speak(catalogMsg, () => {
-          sessionServiceRef.current?.updateState(session.sessionId, 'IDLE');
-          setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-        });
-        isProcessingSpeechRef.current = false;
-        return;
-      }
-
-      // CASE F: GENERAL SHOPPING SEARCH (Standard Intent Extraction + BuyerAgent Pipeline)
-      sessionServiceRef.current.updateState(session.sessionId, 'PROCESSING');
-      sessionServiceRef.current.addTurn(session.sessionId, {
-        actor: 'USER',
-        input: userPrompt,
-        interpretedIntent: null,
-        toolCalls: [],
-        observations: [],
-        response: '',
-      });
-      setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-      const intentRes = await fetch('/api/intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userPrompt }),
-      });
-      const intentData = await intentRes.json();
-
-      if (!intentData.success || !intentData.intent) {
-        sessionServiceRef.current.setError(session.sessionId, {
-          code: 'INTENT_FAILED',
-          message: intentData.error || 'Failed to understand shopping request.',
-        });
-        sessionServiceRef.current.updateState(session.sessionId, 'IDLE');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-        voiceProviderRef.current?.speak(
-          "I'm sorry, I couldn't understand that request. Could you rephrase?"
-        );
-        isProcessingSpeechRef.current = false;
-        return;
-      }
-
-      const extractedIntent: PurchaseIntent = intentData.intent;
-      sessionServiceRef.current.setIntent(session.sessionId, extractedIntent);
-      setIntent(extractedIntent);
-
-      sessionServiceRef.current.updateState(session.sessionId, 'SEARCHING');
-      sessionServiceRef.current.updateState(session.sessionId, 'EVALUATING');
-      setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-      const buyerRes = await fetch('/api/agent/buyer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          intent: extractedIntent,
-          userMessage: userPrompt,
-        }),
-      });
-
-      const buyerData = await buyerRes.json();
-      if (!buyerData.success || !buyerData.recommendation) {
-        sessionServiceRef.current.setError(session.sessionId, {
-          code: 'NO_PRODUCTS',
-          message: buyerData.error?.message || 'No matching products found in catalog.',
-        });
-        sessionServiceRef.current.updateState(session.sessionId, 'IDLE');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-        voiceProviderRef.current?.speak(
-          "I searched NovaBazaar but couldn't find products matching those constraints."
-        );
-        isProcessingSpeechRef.current = false;
-        return;
-      }
-
-      const recs: BuyerRecommendation = buyerData.recommendation;
-      sessionServiceRef.current.setRecommendations(session.sessionId, recs);
-      setRecommendation(recs);
-
-      if (recs.recommendations && recs.recommendations.length > 0) {
-        const prodMap: Record<string, Product> = {};
-        await Promise.all(
-          recs.recommendations.map(async (r) => {
-            try {
-              const pRes = await fetch(`/api/catalog/products/${r.productId}`);
-              const pData = await pRes.json();
-              if (pData.success && pData.product) {
-                prodMap[r.productId] = pData.product;
-              }
-            } catch {
-              // ignore
-            }
-          })
-        );
-        setRecommendedProductsMap(prodMap);
-      }
-
-      const count = recs.recommendations.length;
-      const spokenSummary =
-        count > 0
-          ? `I found ${count} matching options within your budget. I've placed them on your screen.`
-          : 'I searched NovaBazaar, but no products met all your criteria.';
-
-      sessionServiceRef.current.addTurn(session.sessionId, {
-        actor: 'AGENT',
-        input: '',
-        interpretedIntent: extractedIntent,
-        toolCalls: recs.toolTrace.map((t) => ({
-          step: t.step,
-          tool: t.tool,
-          input: t.input,
-          resultSummary: t.resultSummary,
-        })),
-        observations: [recs.summary],
-        response: spokenSummary,
-      });
-
-      sessionServiceRef.current.updateState(session.sessionId, 'PRESENTING_RESULTS');
-      sessionServiceRef.current.updateState(session.sessionId, 'AWAITING_SELECTION');
-      setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-      voiceProviderRef.current?.speak(spokenSummary, () => {
-        sessionServiceRef.current?.updateState(session.sessionId, 'AWAITING_SELECTION');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-      });
-    } catch (err: any) {
-      sessionServiceRef.current?.setError(session?.sessionId || 'default', {
-        code: 'INTENT_FAILED',
-        message: err.message || 'Error executing voice pipeline.',
-      });
-    } finally {
-      isProcessingSpeechRef.current = false;
-    }
-  };
-
-  // Toggle Voice Recognition & Wake Word Detection
+  // Toggle Voice Recognition & Wake Word Detection for ChatShoppingPanel
   const handleMicToggle = () => {
-    if (!voiceProviderRef.current || !session) return;
+    if (!voiceProviderRef.current) return;
 
     if (isListening) {
       voiceProviderRef.current.stopListening();
       setIsListening(false);
-      sessionServiceRef.current.updateState(session.sessionId, 'IDLE');
-      setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
+      safeUpdateSessionState('IDLE');
       return;
     }
 
     setIsListening(true);
-    setIsPanelOpen(true);
-    sessionServiceRef.current.updateState(session.sessionId, 'ACTIVATING');
-    sessionServiceRef.current.updateState(session.sessionId, 'LISTENING');
-    setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
+    safeUpdateSessionState('LISTENING');
 
     voiceProviderRef.current.startListening(
       (result) => {
         if (!result.transcript) return;
 
-        // SYNC RECOGNIZED SPEECH TO SEARCH INPUT BOX IN REAL TIME
-        setMessage(result.transcript);
-
         const wakeWordResult = detectWakeWord(result.transcript);
+        const textToProcess = wakeWordResult.isWakeWordDetected
+          ? wakeWordResult.remainingText || 'hello'
+          : result.transcript;
 
-        if (wakeWordResult.isWakeWordDetected) {
-          if (wakeWordResult.remainingText) {
-            executeVoiceAgentPipeline(wakeWordResult.remainingText);
-          } else {
-            sessionServiceRef.current.addTurn(session.sessionId, {
-              actor: 'USER',
-              input: result.transcript,
-              interpretedIntent: null,
-              toolCalls: [],
-              observations: [],
-              response: '',
-            });
-
-            const greeting = "Hello Ayush, how are you doing? How can I help you? What would you like to purchase? I am here to assist you.";
-            sessionServiceRef.current.addTurn(session.sessionId, {
-              actor: 'AGENT',
-              input: '',
-              interpretedIntent: null,
-              toolCalls: [],
-              observations: [],
-              response: greeting,
-            });
-
-            sessionServiceRef.current.updateState(session.sessionId, 'SPEAKING');
-            setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-
-            voiceProviderRef.current?.speak(greeting, () => {
-              sessionServiceRef.current?.updateState(session.sessionId, 'LISTENING');
-              setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-            });
-          }
-        } else if (result.isFinal) {
-          executeVoiceAgentPipeline(result.transcript);
+        if (result.isFinal) {
+          setIsListening(false);
+          safeUpdateSessionState('PROCESSING');
+          setVoiceInputText(textToProcess);
         }
       },
       (error) => {
         setIsListening(false);
-        sessionServiceRef.current.setError(session.sessionId, {
-          code: 'VOICE_UNAVAILABLE',
-          message: error.message || 'Speech recognition error.',
-        });
-        sessionServiceRef.current.updateState(session.sessionId, 'IDLE');
-        setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
+        safeUpdateSessionState('IDLE');
+        console.warn(
+          'Voice Agent Notice (non-blocking fallback to text mode): Voice recognition unavailable.',
+          error.message || error.code || error
+        );
       }
     );
   };
@@ -750,8 +278,6 @@ export default function Home() {
     setProposal(null);
     setPaymentTransaction(null);
     setPaymentStatus('NONE');
-
-    executeVoiceAgentPipeline(message);
 
     try {
       setStatusStep('Searching NovaBazaar catalog...');
@@ -822,12 +348,9 @@ export default function Home() {
     setPaymentTransaction(null);
     setPaymentStatus('NONE');
 
-    if (session) {
-      sessionServiceRef.current.updateState(session.sessionId, 'PRODUCT_SELECTED');
-      sessionServiceRef.current.updateState(session.sessionId, 'PROPOSAL_READY');
-      sessionServiceRef.current.updateState(session.sessionId, 'AWAITING_HUMAN_APPROVAL');
-      setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
-    }
+    safeUpdateSessionState('PRODUCT_SELECTED');
+    safeUpdateSessionState('PROPOSAL_READY');
+    safeUpdateSessionState('AWAITING_HUMAN_APPROVAL');
 
     try {
       const prodRes = await fetch(`/api/catalog/products/${productId}`);
@@ -1079,21 +602,20 @@ export default function Home() {
               <nav className="hidden md:flex items-center gap-4 text-xs font-medium text-slate-600">
                 <Link href="/" className="text-blue-600 font-semibold">Home</Link>
                 <Link href="/catalog" className="hover:text-slate-900 transition">Dev Catalog</Link>
+                <Link href="/revenue" className="hover:text-blue-600 font-bold transition text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md">Revenue Agent</Link>
               </nav>
             </div>
 
             {/* PHASE 7E ADAM AGENT HEADER PRESENCE */}
             <div className="flex items-center gap-3 text-xs text-slate-600">
               <AgentHeader
-                state={session?.state || 'IDLE'}
+                state={isListening ? 'LISTENING' : session?.state || 'IDLE'}
                 isVoiceSupported={isVoiceSupported}
                 onMicClick={handleMicToggle}
-                onPanelToggle={() => setIsPanelOpen(!isPanelOpen)}
-                isPanelOpen={isPanelOpen}
               />
               <span className="hidden sm:inline text-slate-300">|</span>
               <span className="hidden sm:inline cursor-pointer hover:text-slate-900">Account</span>
-              <span className="hidden sm:inline cursor-pointer hover:text-slate-900 font-medium">Cart (0)</span>
+              <span className="hidden sm:inline cursor-pointer hover:text-slate-900 font-medium">Cart ({cartState.items.length})</span>
             </div>
           </div>
 
@@ -1117,82 +639,33 @@ export default function Home() {
           </div>
         </header>
 
-        {/* PHASE 7E ADAM CONVERSATIONAL AGENT PANEL */}
-        <AgentPanel
-          session={session}
-          isOpen={isPanelOpen}
-          onClose={() => setIsPanelOpen(false)}
-          catalogProducts={categoryProducts}
-          onSelectProduct={handleCreateProposal}
-          onApproveProposal={handleApproveProposal}
-          onRejectProposal={handleRejectProposal}
-          isVoiceSupported={isVoiceSupported}
-          onMicToggle={handleMicToggle}
-          onClearChat={handleClearChat}
-        />
-
         {/* Main Shopping Area */}
         <main className="max-w-6xl mx-auto px-4 py-6">
 
-          {/* Search Box & Popular Searches */}
-          <div className="bg-white rounded-lg border border-slate-200 p-5 md:p-6 mb-6 shadow-xs">
-            <h2 className="text-sm font-semibold text-slate-700 mb-2">Search products or describe what you need:</h2>
-
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="e.g. Wireless earbuds under ₹2,000, 1L steel bottle, or laptop backpack for travel..."
-                  className="w-full pl-4 pr-10 py-3 rounded-md bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white text-sm"
-                  disabled={loading}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !message.trim()}
-                className="px-6 py-3 text-sm font-semibold rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-              >
-                {loading ? 'Searching...' : 'Find Products'}
-              </button>
-            </form>
-
-            {/* Popular Search Chips */}
-            <div className="flex flex-wrap items-center gap-2 pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
-              <span className="font-medium text-slate-600">Popular searches:</span>
-              <button
-                onClick={() => applyPreset('I need wireless earbuds under ₹2,000')}
-                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
-              >
-                Wireless earbuds
-              </button>
-              <button
-                onClick={() => applyPreset('I need a wireless mouse under ₹1,000')}
-                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
-              >
-                Wireless mouse
-              </button>
-              <button
-                onClick={() => applyPreset('I need a 1L stainless steel bottle under ₹2,000 for travel')}
-                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
-              >
-                1L stainless steel bottle
-              </button>
-              <button
-                onClick={() => applyPreset('Find me a non-slip yoga mat under ₹1,500')}
-                className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
-              >
-                Yoga mat
-              </button>
+          {/* PRIMARY SHOPPING INTERFACE: UNIFIED CHAT & VOICE PANEL GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2">
+              <ChatShoppingPanel
+                currentCart={cartState}
+                onCartUpdate={handleCartUpdateFromChat}
+                onProposalCreated={handleProposalCreatedFromChat}
+                isVoiceSupported={isVoiceSupported}
+                isListening={isListening}
+                voiceState={session?.state || 'IDLE'}
+                onMicToggle={handleMicToggle}
+                voiceProvider={voiceProviderRef.current}
+                voiceInputText={voiceInputText}
+                onClearVoiceInputText={() => setVoiceInputText('')}
+              />
             </div>
-
-            {loading && statusStep && (
-              <div className="mt-3 p-2.5 rounded bg-blue-50 border border-blue-200 text-blue-700 text-xs font-medium animate-pulse">
-                {statusStep}
-              </div>
-            )}
+            <div>
+              <CartPanel
+                cart={cartState}
+                onRemoveItem={handleRemoveFromCart}
+                onUpdateQuantity={handleUpdateCartQuantity}
+                onCheckout={handleCheckoutCartFromButton}
+              />
+            </div>
           </div>
 
           {/* Configuration / Error Callout Banner */}
@@ -1468,25 +941,38 @@ export default function Home() {
               {/* Itemized Order Review Table */}
               <div className="border border-slate-200 rounded-md overflow-hidden text-sm">
                 <table className="w-full text-left border-collapse">
-                  <tbody>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                      <td className="p-3 text-slate-600 font-medium">Product</td>
-                      <td className="p-3 font-bold text-slate-900 text-right">{proposal.productName}</td>
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-100/70 text-xs font-semibold text-slate-700">
+                      <th className="p-3">Product</th>
+                      <th className="p-3 text-center">Qty</th>
+                      <th className="p-3 text-right">Unit Price</th>
+                      <th className="p-3 text-right">Subtotal</th>
                     </tr>
-                    <tr className="border-b border-slate-200">
-                      <td className="p-3 text-slate-600 font-medium">Quantity</td>
-                      <td className="p-3 font-semibold text-slate-900 text-right">{proposal.quantity}</td>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {proposal.items && proposal.items.length > 0 ? (
+                      proposal.items.map((item) => (
+                        <tr key={item.productId}>
+                          <td className="p-3 font-medium text-slate-900">{item.productName}</td>
+                          <td className="p-3 text-center text-slate-700 font-semibold">{item.quantity}</td>
+                          <td className="p-3 text-right font-mono text-slate-700">{formatRupees(item.unitPricePaise)}</td>
+                          <td className="p-3 text-right font-mono text-slate-900 font-semibold">{formatRupees(item.subtotalPaise)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="p-3 font-medium text-slate-900">{proposal.productName}</td>
+                        <td className="p-3 text-center text-slate-700 font-semibold">{proposal.quantity}</td>
+                        <td className="p-3 text-right font-mono text-slate-700">{formatRupees(proposal.unitPricePaise)}</td>
+                        <td className="p-3 text-right font-mono text-slate-900 font-semibold">{formatRupees(proposal.unitPricePaise * proposal.quantity)}</td>
+                      </tr>
+                    )}
+                    <tr className="bg-slate-50 border-t border-slate-200 font-medium">
+                      <td colSpan={3} className="p-3 text-slate-600 text-right">Delivery Fee:</td>
+                      <td className="p-3 text-right font-mono text-slate-900 font-semibold">{formatRupees(proposal.deliveryFeePaise)}</td>
                     </tr>
-                    <tr className="border-b border-slate-200">
-                      <td className="p-3 text-slate-600 font-medium">Unit Price</td>
-                      <td className="p-3 font-mono text-slate-900 text-right">{formatRupees(proposal.unitPricePaise)}</td>
-                    </tr>
-                    <tr className="border-b border-slate-200">
-                      <td className="p-3 text-slate-600 font-medium">Delivery Fee</td>
-                      <td className="p-3 font-mono text-slate-900 text-right">{formatRupees(proposal.deliveryFeePaise)}</td>
-                    </tr>
-                    <tr className="bg-slate-50 font-bold">
-                      <td className="p-4 text-slate-900 text-base">Total Amount</td>
+                    <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
+                      <td colSpan={3} className="p-4 text-slate-900 text-base">Total Order Value</td>
                       <td className="p-4 text-blue-600 text-xl font-black text-right">
                         {formatRupees(proposal.totalPaise)}
                       </td>
@@ -1599,6 +1085,17 @@ export default function Home() {
               )}
             </div>
           )}
+
+          {/* Merchant Agentic Revenue Recovery Section */}
+          <div className="mt-12 pt-8 border-t border-slate-200">
+            <h2 className="text-center text-lg font-bold text-slate-900 mb-2">
+              Merchant Revenue Recovery Dashboard
+            </h2>
+            <p className="text-center text-xs text-slate-500 max-w-xl mx-auto mb-4">
+              Autonomous AI Revenue Agent identifying recoverable failed payments and generating Razorpay payment collection links under Policy Engine governance.
+            </p>
+            <RevenueRecoveryWidget />
+          </div>
 
         </main>
       </div>

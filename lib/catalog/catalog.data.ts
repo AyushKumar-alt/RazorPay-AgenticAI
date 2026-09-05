@@ -28,7 +28,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/electronics/usb-c-hub.png',
+    imageUrl: '/products/electronics/usb-c-hub.jpg',
   },
   {
     id: 'elec_002',
@@ -87,7 +87,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/electronics/webcam.png',
+    imageUrl: '/products/electronics/web-cam.jpg',
   },
   {
     id: 'elec_005',
@@ -106,7 +106,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 4, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: false },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/electronics/portable-ssd.png',
+    imageUrl: '/products/electronics/portable-ssd.jpg',
   },
   {
     id: 'elec_006',
@@ -146,7 +146,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/mobile/20w-adapter.png',
+    imageUrl: '/products/mobile/20w-adapter.jpg',
   },
   {
     id: 'mobile_002',
@@ -165,7 +165,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/mobile/power-bank.png',
+    imageUrl: '/products/mobile/power-bank.jpg',
   },
   {
     id: 'mobile_003',
@@ -184,7 +184,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/mobile/phone-stand.png',
+    imageUrl: '/products/mobile/phone-stand.jpg',
   },
   {
     id: 'mobile_004',
@@ -204,7 +204,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/mobile/usbc-cable.png',
+    imageUrl: '/products/mobile/usbc-cable.jpg',
   },
   {
     id: 'mobile_005',
@@ -366,7 +366,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/fitness/resistance-bands.png',
+    imageUrl: '/products/fitness/resistance-bands.jpg',
   },
   {
     id: 'fit_003',
@@ -403,7 +403,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/fitness/skipping-rope.png',
+    imageUrl: '/products/fitness/skipping-rope.jpg',
   },
   {
     id: 'fit_005',
@@ -422,7 +422,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/fitness/shaker-bottle.png',
+    imageUrl: '/products/fitness/shaker-bottle.jpg',
   },
   {
     id: 'fit_006',
@@ -462,7 +462,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/home/electric-kettle.png',
+    imageUrl: '/products/home/electric-kettle.jpg',
   },
   {
     id: 'home_002',
@@ -481,7 +481,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/home/lunch-box.png',
+    imageUrl: '/products/home/lunch-box.jpg',
   },
   {
     id: 'home_003',
@@ -500,7 +500,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/home/kitchen-scale.png',
+    imageUrl: '/products/home/kitchen-scale.jpg',
   },
   {
     id: 'home_004',
@@ -519,7 +519,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 6000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/home/container-set.png',
+    imageUrl: '/products/home/container-set.jpg',
   },
   {
     id: 'home_005',
@@ -557,7 +557,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/home/desk-fan.png',
+    imageUrl: '/products/home/desk-fan.jpg',
   },
 
   // --- 6. FASHION (5) ---
@@ -578,7 +578,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/fashion/casual-tshirt.png',
+    imageUrl: '/products/fashion/casual-tshirt.jpg',
   },
   {
     id: 'fashion_002',
@@ -614,7 +614,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/fashion/minimal-wallet.png',
+    imageUrl: '/products/fashion/minimal-wallet.jpg',
   },
   {
     id: 'fashion_004',
@@ -651,7 +651,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/fashion/everyday-backpack.png',
+    imageUrl: '/products/fashion/everyday-backpack.jpg',
   },
 
   // --- 7. TRAVEL (5) ---
@@ -673,7 +673,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/travel/travel-backpack.png',
+    imageUrl: '/products/travel/travel-backpack.jpg',
   },
   {
     id: 'travel_002',
@@ -692,7 +692,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/travel/packing-cubes.png',
+    imageUrl: '/products/travel/packing-cubes.jpg',
   },
   {
     id: 'travel_003',
@@ -710,7 +710,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/travel/neck-pillow.png',
+    imageUrl: '/products/travel/neck-pillow.jpg',
   },
   {
     id: 'travel_004',
@@ -728,7 +728,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/travel/luggage-organizer.png',
+    imageUrl: '/products/travel/luggage-organizer.jpg',
   },
   {
     id: 'travel_005',
@@ -746,7 +746,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/travel/toiletry-pouch.png',
+    imageUrl: '/products/travel/toiletry-pouch.jpg',
   },
 
   // --- 8. PERSONAL CARE (5) ---
@@ -767,7 +767,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/care/electric-toothbrush.png',
+    imageUrl: '/products/care/electric-tooth-brush.jpg',
   },
   {
     id: 'care_002',
@@ -786,7 +786,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 5000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/care/hair-dryer.png',
+    imageUrl: '/products/care/hair-dryer.jpg',
   },
   {
     id: 'care_003',
@@ -805,7 +805,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/care/grooming-trimmer.png',
+    imageUrl: '/products/care/gromming-trimmer.jpg',
   },
   {
     id: 'care_004',
@@ -824,7 +824,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/care/cleansing-brush.png',
+    imageUrl: '/products/care/cleansing-brush.jpg',
   },
   {
     id: 'care_005',
@@ -842,7 +842,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: false },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/care/care-organizer.png',
+    imageUrl: '/products/care/care-organizer.jpg',
   },
 
   // --- 9. OFFICE & STUDY (6) ---
@@ -864,7 +864,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/office/hardcover-notebook.png',
+    imageUrl: '/products/office/hardcover-notebook.jpg',
   },
   {
     id: 'office_002',
@@ -883,7 +883,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/office/laptop-stand.png',
+    imageUrl: '/products/office/laptop-stand.jpg',
   },
   {
     id: 'office_003',
@@ -902,7 +902,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/office/desk-organizer.png',
+    imageUrl: '/products/office/desk-organizer.jpg',
   },
   {
     id: 'office_004',
@@ -940,7 +940,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 3, shippingFeePaise: 4500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/office/study-lamp.png',
+    imageUrl: '/products/office/study-lamp.jpg',
   },
   {
     id: 'office_006',
@@ -959,7 +959,7 @@ export const SEED_PRODUCTS: Product[] = [
     deliveryInfo: { estimatedDays: 2, shippingFeePaise: 2500, freeShippingThresholdPaise: 100000, expressAvailable: true },
     returnPolicy: '30 days easy returns.',
     active: true,
-    imageUrl: '/products/office/document-folder.png',
+    imageUrl: '/products/office/document-folder.jpg',
   },
 
   // --- 10. LIFESTYLE (6) ---
@@ -1094,4 +1094,202 @@ export const SEED_PRODUCTS: Product[] = [
     active: true,
     imageUrl: '/products/lifestyle/bottle_006.png',
   },
+
+  // --- 11. PAIRED COMPANION ACCESSORIES (10) ---
+  {
+    id: 'elec_007',
+    merchantId: 'merchant_aquamart',
+    name: 'ErgoGlide Non-Slip Ergonomic Gaming Mouse Pad',
+    category: 'electronics',
+    description: 'Smooth micro-weave cloth surface with non-slip natural rubber base, stitched anti-fray edges, and spill-resistant coating for ultra-precise mouse tracking.',
+    pricePaise: 39900, // ₹399
+    currency: 'INR',
+    attributes: {
+      material: 'cloth_rubber',
+      color: 'Matte Black',
+      waterproof: true,
+      dimensions: '300x250x3mm',
+    },
+    stock: 50,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/electronics/mouse-pad.jpg',
+  },
+  {
+    id: 'home_007',
+    merchantId: 'merchant_aquamart',
+    name: 'AquaThermal 750ml Stainless Steel Water Bottle',
+    category: 'home',
+    description: 'Double-wall vacuum insulated stainless steel water bottle. Keeps beverages ice cold for 24 hours or hot for 12 hours with leakproof carrying loop lid.',
+    pricePaise: 49900, // ₹499
+    currency: 'INR',
+    attributes: {
+      capacity: '750ml',
+      material: 'stainless_steel',
+      insulation: true,
+      color: 'Matte Black',
+    },
+    stock: 45,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/home/water-bottle.png',
+  },
+  {
+    id: 'elec_008',
+    merchantId: 'merchant_aquamart',
+    name: 'ErgoRest Memory Foam Keyboard Wrist Rest',
+    category: 'electronics',
+    description: 'Ergonomic high-density memory foam wrist cushion with breathable Lycra fabric cover and non-slip rubber base to prevent wrist fatigue.',
+    pricePaise: 49900, // ₹499
+    currency: 'INR',
+    attributes: {
+      material: 'memory_foam',
+      color: 'Black',
+      ergonomic: true,
+    },
+    stock: 40,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/electronics/wrist-rest.jpg',
+  },
+  {
+    id: 'audio_006',
+    merchantId: 'merchant_aquamart',
+    name: 'MountPro Aluminum Desk Headphone Stand Holder',
+    category: 'audio',
+    description: 'Universal aluminum desk headset hanger stand with non-slip weighted base and soft curved silicone headrest cradle for over-ear headphones.',
+    pricePaise: 59900, // ₹599
+    currency: 'INR',
+    attributes: {
+      material: 'aluminum',
+      color: 'Space Grey',
+      compatibility: 'Universal',
+    },
+    stock: 35,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/audio/headphone-stand.jpg',
+  },
+  {
+    id: 'office_007',
+    merchantId: 'merchant_aquamart',
+    name: 'ShieldPro Padded Water-Resistant 15.6" Laptop Sleeve',
+    category: 'office',
+    description: '360-degree shockproof protective laptop sleeve with soft fleece lining, water-resistant neoprene exterior, and front zipper accessory pouch.',
+    pricePaise: 69900, // ₹699
+    currency: 'INR',
+    attributes: {
+      laptopSize: '15.6 inch',
+      material: 'neoprene',
+      color: 'Charcoal Grey',
+      waterproof: true,
+    },
+    stock: 30,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/office/laptop-sleeve.jpg',
+  },
+  {
+    id: 'mobile_006',
+    merchantId: 'merchant_aquamart',
+    name: 'ArmorShield MagSafe Shockproof Clear Phone Case',
+    category: 'mobile',
+    description: 'Military-grade drop protection clear phone case with integrated MagSafe magnetic ring array and raised camera bezel defense.',
+    pricePaise: 39900, // ₹399
+    currency: 'INR',
+    attributes: {
+      magsafe: true,
+      material: 'polycarbonate_tpu',
+      color: 'Clear',
+    },
+    stock: 60,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 2500, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/mobile/phone-case.jpg',
+  },
+  {
+    id: 'elec_009',
+    merchantId: 'merchant_aquamart',
+    name: 'LuminaRing 10-Inch Desktop LED Selfie Ring Light',
+    category: 'electronics',
+    description: 'USB-powered 10-inch desktop LED selfie ring light with 3 light modes (warm, cool, neutral), 10 brightness levels, and flexible phone tripod.',
+    pricePaise: 79900, // ₹799
+    currency: 'INR',
+    attributes: {
+      diameter: '10 inch',
+      lightModes: 3,
+      powerSource: 'USB',
+      color: 'Black',
+    },
+    stock: 25,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 4000, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/electronics/ring-light.jpg',
+  },
+  {
+    id: 'home_008',
+    merchantId: 'merchant_aquamart',
+    name: 'ThermoBrew Stainless Steel Travel Coffee Mug 450ml',
+    category: 'home',
+    description: 'Vacuum insulated 450ml stainless steel travel coffee tumbler with leakproof flip lid and non-slip silicone grip for hot/cold drinks.',
+    pricePaise: 49900, // ₹499
+    currency: 'INR',
+    attributes: {
+      capacity: '450ml',
+      material: 'stainless_steel',
+      color: 'Matte White',
+      insulation: true,
+    },
+    stock: 40,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3000, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/home/travel-mug.jpg',
+  },
+  {
+    id: 'fashion_006',
+    merchantId: 'merchant_aquamart',
+    name: 'FlexStride Breathable Athletic Cushion Socks 3-Pack',
+    category: 'fashion',
+    description: 'Moisture-wicking low-cut performance athletic socks featuring mesh breathability panels, targeted arch compression, and padded heel/toe.',
+    pricePaise: 34900, // ₹349
+    currency: 'INR',
+    attributes: {
+      packSize: '3-Pack',
+      material: 'cotton_blend',
+      color: 'Black/Grey/White',
+    },
+    stock: 55,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 2500, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/fashion/sports-socks.jpg',
+  },
+  {
+    id: 'fit_007',
+    merchantId: 'merchant_aquamart',
+    name: 'FlexBalance High-Density Yoga Foam Block Set 2-Pack',
+    category: 'fitness',
+    description: 'Set of 2 supportive high-density eco EVA foam yoga blocks with bevelled edges for optimal grip, stability, and posture extension.',
+    pricePaise: 44900, // ₹449
+    currency: 'INR',
+    attributes: {
+      pieceCount: 2,
+      material: 'EVA_foam',
+      color: 'Purple',
+    },
+    stock: 35,
+    deliveryInfo: { estimatedDays: 2, shippingFeePaise: 3500, freeShippingThresholdPaise: 100000, expressAvailable: true },
+    returnPolicy: '30 days easy returns.',
+    active: true,
+    imageUrl: '/products/fitness/yoga-blocks.jpg',
+  },
 ];
+

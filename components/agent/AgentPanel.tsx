@@ -121,7 +121,7 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({
         </div>
 
         {/* Structured error display if present */}
-        {session.error && (
+        {session.error && session.error.code !== 'VOICE_UNAVAILABLE' && (
           <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800">
             <strong>Error ({session.error.code})</strong>: {session.error.message}
           </div>

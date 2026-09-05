@@ -9,12 +9,13 @@ export class PaymentStore {
 
   // Valid State Transitions Map
   private static ALLOWED_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
-    CREATED: ['PAYMENT_PENDING', 'FAILED'],
-    PAYMENT_PENDING: ['AUTHORIZED', 'CAPTURED', 'FAILED', 'VERIFICATION_FAILED'],
-    AUTHORIZED: ['CAPTURED', 'FAILED', 'VERIFICATION_FAILED'],
-    VERIFICATION_FAILED: ['PAYMENT_PENDING'],
+    CREATED: ['PAYMENT_PENDING', 'FAILED', 'RECOVERED'],
+    PAYMENT_PENDING: ['AUTHORIZED', 'CAPTURED', 'FAILED', 'VERIFICATION_FAILED', 'RECOVERED'],
+    AUTHORIZED: ['CAPTURED', 'FAILED', 'VERIFICATION_FAILED', 'RECOVERED'],
+    VERIFICATION_FAILED: ['PAYMENT_PENDING', 'RECOVERED'],
     CAPTURED: ['CAPTURED'], // Idempotent terminal state
-    FAILED: ['FAILED'],     // Terminal state
+    FAILED: ['FAILED', 'RECOVERED'], // FAILED state can transition to RECOVERED when payment_link.paid webhook arrives
+    RECOVERED: ['RECOVERED'], // Idempotent terminal state
   };
 
   public static create(transaction: PaymentTransaction): PaymentTransaction {

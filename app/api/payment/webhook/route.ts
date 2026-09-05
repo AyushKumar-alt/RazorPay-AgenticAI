@@ -52,17 +52,59 @@ export async function POST(request: NextRequest) {
 
     PaymentStore.markWebhookEventProcessed(eventId);
 
+    const paymentLinkEntity = payload.payload?.payment_link?.entity || {};
     const paymentEntity = payload.payload?.payment?.entity || {};
     const orderEntity = payload.payload?.order?.entity || {};
 
     const razorpayOrderId = paymentEntity.order_id || orderEntity.id;
     const razorpayPaymentId = paymentEntity.id;
 
+    // 1. Process Payment Link Webhook Events (payment_link.paid, etc.)
+    if (eventType.startsWith('payment_link.')) {
+      const sourceOrderId =
+        paymentLinkEntity.notes?.sourceOrderId ||
+        paymentLinkEntity.reference_id ||
+        paymentLinkEntity.id;
+
+      const tx =
+        (sourceOrderId ? PaymentStore.getById(sourceOrderId) : null) ||
+        (razorpayOrderId ? PaymentStore.getByOrderId(razorpayOrderId) : null);
+
+      if (tx) {
+        if (eventType === 'payment_link.paid') {
+          if (tx.status !== 'RECOVERED') {
+            tx.status = 'RECOVERED';
+            if (razorpayPaymentId) {
+              tx.razorpayPaymentId = razorpayPaymentId;
+            }
+            PaymentStore.update(tx);
+
+            AuditService.recordEvent(
+              'PAYMENT_RECOVERED',
+              tx.proposalId || tx.transactionId,
+              tx.merchantId || 'merchant_aquamart',
+              tx.productId || 'product_unknown',
+              {
+                actor: 'RAZORPAY_WEBHOOK',
+                transactionId: tx.transactionId,
+                paymentLinkId: paymentLinkEntity.id,
+                razorpayPaymentId: razorpayPaymentId || tx.razorpayPaymentId,
+                amountPaidPaise: paymentLinkEntity.amount_paid || paymentLinkEntity.amount || tx.amountPaise,
+                source: 'WEBHOOK',
+                event: eventType,
+              }
+            );
+          }
+        }
+      }
+    }
+
+    // 2. Process Standard Razorpay Orders & Payments Webhook Events
     if (razorpayOrderId) {
       const tx = PaymentStore.getByOrderId(razorpayOrderId);
       if (tx) {
         if (eventType === 'payment.captured' || eventType === 'order.paid') {
-          if (tx.status !== 'CAPTURED') {
+          if (tx.status !== 'CAPTURED' && tx.status !== 'RECOVERED') {
             tx.status = 'CAPTURED';
             if (razorpayPaymentId) tx.razorpayPaymentId = razorpayPaymentId;
             PaymentStore.update(tx);
@@ -76,7 +118,7 @@ export async function POST(request: NextRequest) {
             });
           }
         } else if (eventType === 'payment.failed') {
-          if (tx.status !== 'CAPTURED') {
+          if (tx.status !== 'CAPTURED' && tx.status !== 'RECOVERED') {
             tx.status = 'FAILED';
             tx.failureReason = paymentEntity.error_description || 'Payment failed via Razorpay Webhook';
             PaymentStore.update(tx);

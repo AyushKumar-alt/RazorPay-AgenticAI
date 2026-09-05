@@ -5,17 +5,35 @@ import {
   GetProductOutput,
   CheckInventoryOutput,
   GetPriceOutput,
+  RecommendRelatedProductsOutput,
+  AddToCartOutput,
+  RemoveFromCartOutput,
+  UpdateCartQuantityOutput,
+  GetCartOutput,
+  CheckoutCartOutput,
 } from './catalog-tool.types';
 import { searchCatalog } from './search-catalog.tool';
 import { getProduct } from './get-product.tool';
 import { checkInventory } from './check-inventory.tool';
 import { getPrice } from './get-price.tool';
+import { recommendRelatedProducts } from './recommend-related-products.tool';
+import { executeAddToCart } from './add-to-cart.tool';
+import { executeRemoveFromCart } from './remove-from-cart.tool';
+import { executeUpdateCartQuantity } from './update-cart-quantity.tool';
+import { executeGetCart } from './get-cart.tool';
+import { executeCheckoutCart } from './checkout-cart.tool';
 
 export const catalogTools = {
   searchCatalog,
   getProduct,
   checkInventory,
   getPrice,
+  recommendRelatedProducts,
+  addToCart: executeAddToCart,
+  removeFromCart: executeRemoveFromCart,
+  updateCartQuantity: executeUpdateCartQuantity,
+  getCart: executeGetCart,
+  checkoutCart: executeCheckoutCart,
 };
 
 export async function executeCatalogTool(
@@ -26,6 +44,12 @@ export async function executeCatalogTool(
   | GetProductOutput
   | CheckInventoryOutput
   | GetPriceOutput
+  | RecommendRelatedProductsOutput
+  | AddToCartOutput
+  | RemoveFromCartOutput
+  | UpdateCartQuantityOutput
+  | GetCartOutput
+  | CheckoutCartOutput
   | CatalogToolErrorResponse
 > {
   switch (toolName) {
@@ -37,6 +61,18 @@ export async function executeCatalogTool(
       return checkInventory(input);
     case 'getPrice':
       return getPrice(input);
+    case 'recommendRelatedProducts':
+      return recommendRelatedProducts(input);
+    case 'addToCart':
+      return executeAddToCart(input);
+    case 'removeFromCart':
+      return executeRemoveFromCart(input);
+    case 'updateCartQuantity':
+      return executeUpdateCartQuantity(input);
+    case 'getCart':
+      return executeGetCart(input);
+    case 'checkoutCart':
+      return executeCheckoutCart(input);
     default:
       return {
         success: false,
@@ -47,3 +83,6 @@ export async function executeCatalogTool(
       };
   }
 }
+
+
+

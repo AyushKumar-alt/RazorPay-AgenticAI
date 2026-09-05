@@ -129,6 +129,15 @@ async function runSessionTests() {
   const sampleProposal: PurchaseProposal = {
     proposalId: 'prop_999',
     merchantId: 'merchant_aquamart',
+    items: [
+      {
+        productId: 'mouse_001',
+        productName: 'Nova Ergonomic Wireless Mouse',
+        quantity: 1,
+        unitPricePaise: 89900,
+        subtotalPaise: 89900,
+      },
+    ],
     productId: 'mouse_001',
     productName: 'Nova Ergonomic Wireless Mouse',
     quantity: 1,

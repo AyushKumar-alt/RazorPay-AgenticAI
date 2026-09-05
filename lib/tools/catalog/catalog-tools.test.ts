@@ -203,6 +203,62 @@ async function runCatalogToolTests() {
     assert(false, 'Test 13', err.message);
   }
 
+  // TEST 14: recommendRelatedProducts returns partner for elec_002 (Wireless Mouse) -> elec_007 (Mouse Pad)
+  try {
+    const res = await executeCatalogTool('recommendRelatedProducts', { productId: 'elec_002' });
+    assert(
+      res.success &&
+        'recommendedProduct' in res &&
+        res.recommendedProduct.id === 'elec_007',
+      'Test 14: recommendRelatedProducts returns elec_007 (Mouse Pad) for elec_002',
+      JSON.stringify(res)
+    );
+  } catch (err: any) {
+    assert(false, 'Test 14', err.message);
+  }
+
+  // TEST 15: recommendRelatedProducts returns partner for audio_001 (Wireless Headphones) -> audio_006 (Headphone Stand)
+  try {
+    const res = await executeCatalogTool('recommendRelatedProducts', { productId: 'audio_001' });
+    assert(
+      res.success &&
+        'recommendedProduct' in res &&
+        res.recommendedProduct.id === 'audio_006',
+      'Test 15: recommendRelatedProducts returns audio_006 (Headphone Stand) for audio_001',
+      JSON.stringify(res)
+    );
+  } catch (err: any) {
+    assert(false, 'Test 15', err.message);
+  }
+
+  // TEST 16: recommendRelatedProducts returns partner for home_002 (Lunch Box) -> home_007 (Water Bottle)
+  try {
+    const res = await executeCatalogTool('recommendRelatedProducts', { productId: 'home_002' });
+    assert(
+      res.success &&
+        'recommendedProduct' in res &&
+        res.recommendedProduct.id === 'home_007',
+      'Test 16: recommendRelatedProducts returns home_007 (Water Bottle) for home_002',
+      JSON.stringify(res)
+    );
+  } catch (err: any) {
+    assert(false, 'Test 16', err.message);
+  }
+
+  // TEST 17: recommendRelatedProducts resolves bidirectionally for paired side mobile_006 (Phone Case) -> mobile_002 (Power Bank)
+  try {
+    const res = await executeCatalogTool('recommendRelatedProducts', { productId: 'mobile_006' });
+    assert(
+      res.success &&
+        'recommendedProduct' in res &&
+        res.recommendedProduct.id === 'mobile_002',
+      'Test 17: recommendRelatedProducts returns mobile_002 bidirectionally for paired side mobile_006',
+      JSON.stringify(res)
+    );
+  } catch (err: any) {
+    assert(false, 'Test 17', err.message);
+  }
+
   console.log(`\nTEST RESULTS SUMMARY: ${passed} Passed, ${failed} Failed`);
   if (failed > 0) {
     process.exit(1);
@@ -210,3 +266,4 @@ async function runCatalogToolTests() {
 }
 
 runCatalogToolTests();
+

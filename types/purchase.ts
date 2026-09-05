@@ -1,8 +1,17 @@
 export type ProposalStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
 
+export interface ProposalItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPricePaise: number;
+  subtotalPaise: number;
+}
+
 export interface PurchaseProposal {
   proposalId: string;
   merchantId: string;
+  items: ProposalItem[];
   productId: string;
   productName: string;
   quantity: number;
@@ -18,8 +27,12 @@ export interface PurchaseProposal {
 
 export interface CreateProposalInput {
   merchantId: string;
-  productId: string;
-  quantity: number;
+  productId?: string;
+  quantity?: number;
+  items?: Array<{
+    productId: string;
+    quantity: number;
+  }>;
 }
 
 export interface CreateProposalResponse {
@@ -39,3 +52,4 @@ export interface ProposalActionResponse {
     message: string;
   };
 }
+

@@ -6,16 +6,12 @@ interface AgentHeaderProps {
   state: AgentSessionState;
   isVoiceSupported: boolean;
   onMicClick?: () => void;
-  onPanelToggle?: () => void;
-  isPanelOpen?: boolean;
 }
 
 export const AgentHeader: React.FC<AgentHeaderProps> = ({
   state,
   isVoiceSupported,
   onMicClick,
-  onPanelToggle,
-  isPanelOpen = false,
 }) => {
   const getStatusBadge = () => {
     switch (state) {
@@ -60,9 +56,9 @@ export const AgentHeader: React.FC<AgentHeaderProps> = ({
         aria-label={
           state === 'LISTENING' ? 'Stop listening' : 'Start Adam voice agent'
         }
-        className={`p-1.5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        className={`p-1.5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${
           state === 'LISTENING'
-            ? 'bg-blue-600 text-white shadow-sm'
+            ? 'bg-blue-600 text-white shadow-sm animate-pulse'
             : isVoiceSupported
             ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             : 'bg-slate-100 text-slate-300 cursor-not-allowed'
@@ -86,16 +82,6 @@ export const AgentHeader: React.FC<AgentHeaderProps> = ({
             d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"
           />
         </svg>
-      </button>
-
-      {/* Toggle Agent Panel button */}
-      <button
-        type="button"
-        onClick={onPanelToggle}
-        aria-label={isPanelOpen ? 'Close Adam Agent Panel' : 'Open Adam Agent Panel'}
-        className="text-xs font-semibold text-blue-600 hover:text-blue-700 pl-1 focus:outline-none"
-      >
-        {isPanelOpen ? 'Hide' : 'Open Panel'}
       </button>
     </div>
   );

@@ -3,7 +3,13 @@ import { PurchaseService } from '@/lib/purchase/purchase.service';
 import { PaymentStore } from './payment.store';
 import { AuditService } from '@/lib/audit/audit.service';
 import { RazorpayProvider, RazorpayHttpProvider, MockRazorpayProvider } from './razorpay.provider';
-import { PaymentTransaction, CreatePaymentOrderResponse, VerifyPaymentResponse } from '@/types/payment';
+import {
+  PaymentTransaction,
+  CreatePaymentOrderResponse,
+  VerifyPaymentResponse,
+  CreateRecoveryPaymentLinkInput,
+  CreateRecoveryPaymentLinkResponse,
+} from '@/types/payment';
 
 export class RazorpayService {
   private static customProvider: RazorpayProvider | null = null;
@@ -312,4 +318,97 @@ export class RazorpayService {
       status: 'CAPTURED',
     };
   }
+
+  /**
+   * Create Razorpay Payment Link for payment recovery.
+   */
+  public static async createRecoveryPaymentLink(
+    input: CreateRecoveryPaymentLinkInput,
+    customProvider?: RazorpayProvider
+  ): Promise<CreateRecoveryPaymentLinkResponse> {
+    const { sourceOrderId, amountPaise, description } = input;
+
+    if (!sourceOrderId || sourceOrderId.trim() === '') {
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_RECOVERY_INPUT',
+          message: 'sourceOrderId is required for recovery payment link creation.',
+        },
+      };
+    }
+
+    if (!amountPaise || amountPaise <= 0) {
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_RECOVERY_INPUT',
+          message: 'amountPaise must be greater than 0.',
+        },
+      };
+    }
+
+    const provider = customProvider || this.getProvider();
+
+    try {
+      const customer =
+        input.customerName || input.customerEmail || input.customerContact
+          ? {
+              name: input.customerName,
+              email: input.customerEmail,
+              contact: input.customerContact,
+            }
+          : undefined;
+
+      const notes: Record<string, string> = {
+        sourceOrderId,
+        ...(input.notes || {}),
+      };
+
+      const paymentLink = await provider.createPaymentLink({
+        amountPaise,
+        currency: 'INR',
+        description: description || `Payment Recovery for order ${sourceOrderId}`,
+        customer,
+        notes,
+      });
+
+      AuditService.recordEvent(
+        'PAYMENT_LINK_CREATED',
+        sourceOrderId,
+        input.merchantId || 'merchant_aquamart',
+        input.productId || 'product_unknown',
+        {
+          actor: 'REVENUE_ACTION_TOOL',
+          paymentLinkId: paymentLink.id,
+          shortUrl: paymentLink.shortUrl,
+          amountPaise: paymentLink.amount,
+          currency: paymentLink.currency,
+          description: paymentLink.description,
+          sourceOrderId,
+        }
+      );
+
+      return {
+        success: true,
+        paymentLink: {
+          id: paymentLink.id,
+          shortUrl: paymentLink.shortUrl,
+          amountPaise: paymentLink.amount,
+          currency: 'INR',
+          status: paymentLink.status,
+          description: paymentLink.description,
+        },
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: {
+          code: 'RAZORPAY_PROVIDER_ERROR',
+          message: err.message || 'Failed to create payment link with Razorpay provider.',
+        },
+      };
+    }
+  }
 }
+

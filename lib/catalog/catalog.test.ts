@@ -20,8 +20,8 @@ async function runCatalogExpansionTests() {
 
   const products = CatalogService.getAllProducts();
 
-  // Test 1: Exactly 55 products exist
-  assert(products.length === 55, 'Test 1: Exactly 55 active products exist in SEED_PRODUCTS', `Count: ${products.length}`);
+  // Test 1: Exactly 65 products exist
+  assert(products.length === 65, 'Test 1: Exactly 65 active products exist in SEED_PRODUCTS', `Count: ${products.length}`);
 
   // Test 2: Exactly 10 canonical categories exist
   const canonicalCategories = ['electronics', 'mobile', 'audio', 'fitness', 'home', 'fashion', 'travel', 'care', 'office', 'lifestyle'];
@@ -46,7 +46,7 @@ async function runCatalogExpansionTests() {
 
   // Test 4: Every product has a unique ID
   const uniqueIds = new Set(products.map((p) => p.id));
-  assert(uniqueIds.size === 55, 'Test 4: Every product has a unique ID', `Unique count: ${uniqueIds.size}`);
+  assert(uniqueIds.size === 65, 'Test 4: Every product has a unique ID', `Unique count: ${uniqueIds.size}`);
 
   // Test 5: Every product has integer pricePaise (> 0)
   const allIntegerPrices = products.every((p) => Number.isInteger(p.pricePaise) && p.pricePaise > 0);
@@ -88,15 +88,15 @@ async function runCatalogExpansionTests() {
 
   // Test 13: Search works for electronics
   const elecResults = CatalogService.searchProducts({ category: 'electronics' });
-  assert(elecResults.length === 6, 'Test 13: Search for category electronics returns 6 products');
+  assert(elecResults.length === 9, 'Test 13: Search for category electronics returns 9 products');
 
   // Test 14: Search works for audio
   const audioResults = CatalogService.searchProducts({ category: 'audio' });
-  assert(audioResults.length === 5, 'Test 14: Search for category audio returns 5 products');
+  assert(audioResults.length === 6, 'Test 14: Search for category audio returns 6 products');
 
   // Test 15: Search works for fitness
   const fitResults = CatalogService.searchProducts({ category: 'fitness' });
-  assert(fitResults.length === 6, 'Test 15: Search for category fitness returns 6 products');
+  assert(fitResults.length === 7, 'Test 15: Search for category fitness returns 7 products');
 
   // Test 16: Search works for travel
   const travelResults = CatalogService.searchProducts({ category: 'travel' });
@@ -104,7 +104,7 @@ async function runCatalogExpansionTests() {
 
   // Test 17: Category filtering works
   const homeResults = CatalogService.searchProducts({ category: 'home' });
-  assert(homeResults.length === 6, 'Test 17: Category filtering returns 6 home & kitchen products');
+  assert(homeResults.length === 8, 'Test 17: Category filtering returns 8 home & kitchen products');
 
   // Test 18: Price filtering works (maxPricePaise = 100000 -> under ₹1,000)
   const budgetResults = CatalogService.searchProducts({ maxPricePaise: 100000 });
@@ -114,7 +114,7 @@ async function runCatalogExpansionTests() {
   // Test 19: In-stock filtering excludes out-of-stock items (elec_005, audio_005, bottle_005)
   const inStockResults = CatalogService.searchProducts({ inStock: true });
   const noOutOfStock = inStockResults.every((p) => p.stock > 0);
-  assert(inStockResults.length === 50 && noOutOfStock, 'Test 19: inStock filtering returns only in-stock items (50 products)');
+  assert(inStockResults.length === 60 && noOutOfStock, 'Test 19: inStock filtering returns only in-stock items (60 products)');
 
   // Test 20: getProduct, getPrice, and checkInventory work for new category products (elec_001, audio_001, office_001)
   const prodElec = CatalogService.getProductById('elec_001');

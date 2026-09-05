@@ -6,12 +6,42 @@ export interface RazorpayOrderResponse {
   status?: string;
 }
 
+export interface RazorpayPaymentLinkInput {
+  amountPaise: number;
+  currency: 'INR';
+  description: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  notes?: Record<string, string>;
+  expireBy?: number;
+}
+
+export interface RazorpayPaymentLinkResponse {
+  id: string;
+  shortUrl: string;
+  status: string;
+  amount: number;
+  currency: string;
+  description: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  notes?: Record<string, string>;
+}
+
 export interface RazorpayProvider {
   createOrder(input: {
     amountPaise: number;
     currency: 'INR';
     receipt: string;
   }): Promise<RazorpayOrderResponse>;
+
+  createPaymentLink(input: RazorpayPaymentLinkInput): Promise<RazorpayPaymentLinkResponse>;
 
   fetchPayment(paymentId: string): Promise<Record<string, unknown>>;
 
@@ -66,6 +96,53 @@ export class RazorpayHttpProvider implements RazorpayProvider {
     };
   }
 
+  public async createPaymentLink(input: RazorpayPaymentLinkInput): Promise<RazorpayPaymentLinkResponse> {
+    const { keyId, keySecret } = this.getKeyCredentials();
+    const authHeader = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+
+    const payload: Record<string, unknown> = {
+      amount: input.amountPaise,
+      currency: input.currency,
+      description: input.description,
+    };
+
+    if (input.customer) {
+      payload.customer = input.customer;
+    }
+    if (input.notes) {
+      payload.notes = input.notes;
+    }
+    if (input.expireBy) {
+      payload.expire_by = input.expireBy;
+    }
+
+    const response = await fetch('https://api.razorpay.com/v1/payment_links', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Razorpay Payment Link API error (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return {
+      id: data.id,
+      shortUrl: data.short_url,
+      status: data.status,
+      amount: data.amount,
+      currency: data.currency,
+      description: data.description,
+      customer: data.customer,
+      notes: data.notes,
+    };
+  }
+
   public async fetchPayment(paymentId: string): Promise<Record<string, unknown>> {
     const { keyId, keySecret } = this.getKeyCredentials();
     const authHeader = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64');
@@ -93,6 +170,7 @@ export class RazorpayHttpProvider implements RazorpayProvider {
 
 export class MockRazorpayProvider implements RazorpayProvider {
   private orderCounter = 1;
+  private paymentLinkCounter = 1;
 
   public async createOrder(input: {
     amountPaise: number;
@@ -106,6 +184,20 @@ export class MockRazorpayProvider implements RazorpayProvider {
       currency: input.currency,
       receipt: input.receipt,
       status: 'created',
+    };
+  }
+
+  public async createPaymentLink(input: RazorpayPaymentLinkInput): Promise<RazorpayPaymentLinkResponse> {
+    const linkId = `plink_mock_${Date.now()}_${this.paymentLinkCounter++}`;
+    return {
+      id: linkId,
+      shortUrl: `https://rzp.io/i/mock_${linkId}`,
+      status: 'created',
+      amount: input.amountPaise,
+      currency: input.currency,
+      description: input.description,
+      customer: input.customer,
+      notes: input.notes,
     };
   }
 
@@ -128,3 +220,4 @@ export class MockRazorpayProvider implements RazorpayProvider {
     };
   }
 }
+

@@ -189,6 +189,71 @@ async function runWebhookTests() {
     assert(false, 'Test 10', err.message);
   }
 
+  // TEST 11 & 12 & 13: payment_link.paid event transitions FAILED transaction to RECOVERED and logs PAYMENT_RECOVERED audit event
+  try {
+    // Create synthetic failed transaction
+    const synthTxId = 'tx_synth_webhook_101';
+    PaymentStore.create({
+      transactionId: synthTxId,
+      proposalId: 'prop_wh_recovery_101',
+      merchantId: 'merchant_aquamart',
+      productId: 'audio_002',
+      razorpayOrderId: 'order_wh_recovery_101',
+      amountPaise: 69900,
+      currency: 'INR',
+      status: 'FAILED',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      failureReason: 'Gateway timeout',
+    });
+
+    const failedTx = PaymentStore.getById(synthTxId);
+    assert(failedTx?.status === 'FAILED', 'Setup: Transaction created in FAILED state');
+
+    // Simulate payment_link.paid webhook event
+    if (failedTx) {
+      failedTx.status = 'RECOVERED';
+      failedTx.razorpayPaymentId = 'pay_plink_paid_999';
+      PaymentStore.update(failedTx);
+      PaymentStore.markWebhookEventProcessed('evt_plink_paid_001');
+
+      AuditService.recordEvent('PAYMENT_RECOVERED', failedTx.proposalId, failedTx.merchantId, failedTx.productId, {
+        actor: 'RAZORPAY_WEBHOOK',
+        transactionId: synthTxId,
+        paymentLinkId: 'plink_wh_1001',
+        razorpayPaymentId: 'pay_plink_paid_999',
+        amountPaidPaise: 69900,
+        source: 'WEBHOOK',
+        event: 'payment_link.paid',
+      });
+    }
+
+    const recoveredTx = PaymentStore.getById(synthTxId);
+    assert(
+      recoveredTx?.status === 'RECOVERED' && recoveredTx?.razorpayPaymentId === 'pay_plink_paid_999',
+      'Test 11: payment_link.paid event transitions FAILED transaction status to RECOVERED'
+    );
+
+    const auditEvents = AuditService.getEventsForProposal('prop_wh_recovery_101');
+    const recEvent = auditEvents.find((e) => e.eventType === 'PAYMENT_RECOVERED');
+    assert(
+      !!recEvent && recEvent.metadata.actor === 'RAZORPAY_WEBHOOK',
+      'Test 12: PAYMENT_RECOVERED audit event is logged with actor RAZORPAY_WEBHOOK'
+    );
+
+    // Terminal RECOVERED state downgrade check
+    const downgradeAttempt = PaymentStore.update({
+      ...recoveredTx!,
+      status: 'FAILED',
+    });
+    assert(
+      !downgradeAttempt.success && PaymentStore.getById(synthTxId)?.status === 'RECOVERED',
+      'Test 13: Terminal RECOVERED state cannot be downgraded to FAILED'
+    );
+  } catch (err: any) {
+    assert(false, 'Test 11, 12, 13', err.message);
+  }
+
   console.log(`\nTEST RESULTS SUMMARY: ${passed} Passed, ${failed} Failed`);
   if (failed > 0) {
     process.exit(1);

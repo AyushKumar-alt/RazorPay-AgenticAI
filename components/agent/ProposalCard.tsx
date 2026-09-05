@@ -36,13 +36,24 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
 
       {/* Itemized calculation table */}
       <div className="space-y-1.5 text-xs text-slate-600">
-        <div className="flex justify-between font-medium text-slate-800">
-          <span>
-            {proposal.productName} (x{proposal.quantity})
-          </span>
-          <span>₹{unitPrice}</span>
-        </div>
-        <div className="flex justify-between">
+        {proposal.items && proposal.items.length > 0 ? (
+          proposal.items.map((item) => (
+            <div key={item.productId} className="flex justify-between font-medium text-slate-800">
+              <span className="truncate max-w-[220px]">
+                {item.productName} (x{item.quantity})
+              </span>
+              <span>₹{(item.subtotalPaise / 100).toLocaleString('en-IN')}</span>
+            </div>
+          ))
+        ) : (
+          <div className="flex justify-between font-medium text-slate-800">
+            <span>
+              {proposal.productName} (x{proposal.quantity})
+            </span>
+            <span>₹{unitPrice}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-slate-500 pt-1">
           <span>Estimated Delivery Fee</span>
           <span>₹{deliveryFee}</span>
         </div>
