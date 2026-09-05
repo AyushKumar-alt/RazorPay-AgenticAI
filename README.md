@@ -146,7 +146,7 @@ RazorPay-AgenticAI/
 
 ---
 
-## ⚡ Core Features
+##  Core Features
 
 ### 1.  Autonomous AI Buyer Shopping Assistant
 * **Natural Language Shopping**: Extracts purchase intent, capacity, material, category, and budget constraints from conversational text or speech.
@@ -288,7 +288,7 @@ Live Production Deployment: **[https://agent-ai-six-iota.vercel.app](https://age
 
 ---
 
-## 📜 License
+##  License
 
 Distributed under the MIT License. See `LICENSE` for details.
 
@@ -296,7 +296,6 @@ Distributed under the MIT License. See `LICENSE` for details.
 
 <div align="center">
 
-![NovaBazaar Footer Banner](./public/banner_footer.jpg)
 
 </div>
 
