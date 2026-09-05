@@ -58,6 +58,75 @@ flowchart TD
 
 ---
 
+## 📁 Project File Structure
+
+```text
+RazorPay-AgenticAI/
+├── app/                                  # Next.js 16 App Router Routes & API Endpoints
+│   ├── api/                              # REST API Route Handlers
+│   │   ├── agent/
+│   │   │   ├── buyer/                    # Buyer Agent API endpoints
+│   │   │   │   ├── chat/route.ts         # Multi-turn chat & tool execution handler
+│   │   │   │   └── route.ts              # One-shot buyer search handler
+│   │   │   └── revenue/
+│   │   │       └── action/route.ts       # Revenue action tool execution handler
+│   │   ├── cart/route.ts                 # Server-side cart management endpoint
+│   │   ├── catalog/
+│   │   │   └── products/                 # Product catalog APIs
+│   │   ├── intent/route.ts               # Conversational intent parsing API
+│   │   ├── payment/
+│   │   │   ├── create-order/route.ts     # Razorpay order creation endpoint
+│   │   │   ├── verify/route.ts           # Razorpay HMAC signature verification endpoint
+│   │   │   └── webhook/route.ts          # Razorpay payment_link.paid webhook handler
+│   │   ├── purchase/
+│   │   │   └── proposal/                 # Purchase proposal creation & approval handlers
+│   │   └── revenue/
+│   │       ├── analyze/route.ts          # Revenue Agent opportunity diagnosis endpoint
+│   │       ├── approve/route.ts          # Merchant human approval endpoint
+│   │       └── status/route.ts           # Realtime 3s polling status endpoint
+│   ├── catalog/page.tsx                  # Interactive Developer Catalog page
+│   ├── revenue/page.tsx                  # Merchant Revenue Recovery Dashboard page
+│   ├── layout.tsx                        # Root layout component
+│   └── page.tsx                          # Main NovaBazaar Buyer Application & Shopping Interface
+├── components/                           # React UI Components
+│   ├── agent/                            # Agentic UI Widgets & Indicators
+│   │   ├── AgentHeader.tsx               # Voice/Agent status bar header presence
+│   │   ├── AgentPanel.tsx                # Merchant dashboard agent control panel
+│   │   ├── AgentVoiceOrb.tsx             # Dynamic animated voice orb state indicator
+│   │   ├── ProposalCard.tsx              # Purchase proposal review & approval card
+│   │   └── RevenueRecoveryWidget.tsx     # Merchant recovery card widget
+│   └── catalog/                          # Shopping UI Components
+│       ├── CartPanel.tsx                 # Live shopping cart panel with item operations
+│       └── ChatShoppingPanel.tsx         # Adam AI voice & text chat shopping interface
+├── lib/                                  # Business Logic, Services, & Agent Engines
+│   ├── agent/
+│   │   ├── buyer/                        # Buyer Shopping Agent logic & schemas
+│   │   └── revenue/                      # Revenue Recovery Agent & Policy Engine
+│   ├── audit/                            # Audit log recorder service
+│   ├── cart/                             # In-memory CartService
+│   ├── catalog/                          # Product catalog service & authoritative data
+│   ├── intent/                           # Intent classification service
+│   ├── money/                            # Rupee currency formatting utilities
+│   ├── payment/                          # Razorpay API provider, store & signature verifier
+│   ├── purchase/                         # Server-side PurchaseProposal & approval service
+│   ├── session/                          # Multi-turn voice session orchestration & reference resolver
+│   ├── tools/
+│   │   └── catalog/                      # Gemini Catalog Tools (search, add, checkout, recommend)
+│   └── voice/                            # WebSpeech voice provider & wake word detector
+├── types/                                # TypeScript Type Definitions & Schemas
+│   ├── agent.ts                          # Agent session & state types
+│   ├── audit.ts                          # Audit event schemas
+│   ├── catalog.ts                        # Product & inventory types
+│   ├── intent.ts                         # Purchase intent types
+│   ├── payment.ts                        # Razorpay transaction & webhook types
+│   └── purchase.ts                       # Proposal & checkout types
+├── public/                               # Static Product & Branding Image Assets
+├── README.md                             # Comprehensive Project Documentation
+└── package.json                          # Dependencies & Scripts Configuration
+```
+
+---
+
 ## ⚡ Core Features
 
 ### 1. 🛒 Autonomous AI Buyer Shopping Assistant
