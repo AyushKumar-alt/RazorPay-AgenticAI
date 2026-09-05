@@ -8,6 +8,7 @@ interface CartPanelProps {
   cart: Cart;
   onRemoveItem?: (productId: string) => void;
   onUpdateQuantity?: (productId: string, newQuantity: number) => void;
+  onClearCart?: () => void;
   onCheckout?: () => void;
 }
 
@@ -15,6 +16,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   cart,
   onRemoveItem,
   onUpdateQuantity,
+  onClearCart,
   onCheckout,
 }) => {
   return (
@@ -26,14 +28,25 @@ export const CartPanel: React.FC<CartPanelProps> = ({
             Shopping Cart ({cart.items.reduce((acc, i) => acc + i.quantity, 0)})
           </h2>
         </div>
-        <span className="text-xs font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200">
-          Live Cart State
-        </span>
+        <div className="flex items-center gap-2">
+          {onClearCart && cart.items.length > 0 && (
+            <button
+              onClick={onClearCart}
+              className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded border border-rose-200 transition cursor-pointer"
+              title="Clear all cart items"
+            >
+              Clear Cart
+            </button>
+          )}
+          <span className="text-xs font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200">
+            Live Cart State
+          </span>
+        </div>
       </div>
 
       {cart.items.length === 0 ? (
         <div className="py-8 text-center text-slate-400 text-xs">
-          Your cart is currently empty. Use the Chat Assistant below to add products!
+          Your cart is currently empty. Use the Chat Assistant to add products!
         </div>
       ) : (
         <div className="space-y-3">

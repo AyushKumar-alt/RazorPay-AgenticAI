@@ -67,14 +67,45 @@ export default function Home() {
   // Live Cart State Sync
   const [cartState, setCartState] = useState<Cart>(getCart());
 
-  const handleRemoveFromCart = (productId: string) => {
+  const handleRemoveFromCart = async (productId: string) => {
+    try {
+      const res = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove', productId }),
+      });
+      const data = await res.json();
+      if (data.cart) {
+        setCartState(data.cart);
+        return;
+      }
+    } catch {}
     const updated = removeFromCart(productId);
     setCartState({ ...updated });
   };
 
-  const handleUpdateCartQuantity = (productId: string, newQty: number) => {
+  const handleUpdateCartQuantity = async (productId: string, newQty: number) => {
+    try {
+      const res = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', productId, quantity: newQty }),
+      });
+      const data = await res.json();
+      if (data.cart) {
+        setCartState(data.cart);
+        return;
+      }
+    } catch {}
     const updated = updateCartQuantity(productId, newQty);
     setCartState({ ...updated });
+  };
+
+  const handleClearCart = async () => {
+    try {
+      await fetch('/api/cart', { method: 'DELETE' });
+    } catch {}
+    setCartState({ items: [], subtotalPaise: 0 });
   };
 
   const handleCartUpdateFromChat = (newCart: Cart) => {
@@ -483,11 +514,12 @@ export default function Home() {
             razorpayPaymentId: mockPaymentId,
             razorpaySignature: 'mock_valid_signature',
           }),
-        });
+});
 
         const verifyData = await verifyRes.json();
         if (verifyData.success) {
           setPaymentStatus('CAPTURED');
+          handleClearCart();
           setPaymentTransaction((prev) =>
             prev ? { ...prev, status: 'CAPTURED', razorpayPaymentId: mockPaymentId } : null
           );
@@ -539,6 +571,7 @@ export default function Home() {
               setErrorMsg(verifyData.error?.message || 'Payment verification failed');
             } else {
               setPaymentStatus('CAPTURED');
+              handleClearCart();
               setPaymentTransaction((prev) =>
                 prev ? { ...prev, status: 'CAPTURED', razorpayPaymentId: response.razorpay_payment_id } : null
               );
@@ -574,6 +607,7 @@ export default function Home() {
 
   // Clear/Delete chat history
   const handleClearChat = () => {
+    handleClearCart();
     if (session) {
       sessionServiceRef.current.resetSession(session.sessionId);
       setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
@@ -663,6 +697,7 @@ export default function Home() {
                 cart={cartState}
                 onRemoveItem={handleRemoveFromCart}
                 onUpdateQuantity={handleUpdateCartQuantity}
+                onClearCart={handleClearCart}
                 onCheckout={handleCheckoutCartFromButton}
               />
             </div>
