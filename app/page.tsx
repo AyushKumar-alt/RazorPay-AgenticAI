@@ -545,7 +545,7 @@ export default function Home() {
         amount: transaction.amountPaise,
         currency: transaction.currency,
         name: 'NovaBazaar',
-        description: proposal.productName,
+        description: proposal.productName || 'NovaBazaar Order',
         order_id: transaction.razorpayOrderId,
         handler: async (response: any) => {
           setPaymentLoading(true);
