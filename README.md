@@ -42,6 +42,7 @@ NovaBazaar is built around a **Dual Agentic Architecture** separating buyer-side
 ```mermaid
 flowchart TD
     subgraph BuyerExperience["🛒 Buyer Shopping Experience"]
+        direction TB
         A[Customer Utterance / Voice Input] --> B[Intent Extraction Engine]
         B --> C[BuyerAgent - Gemini LLM Tool Loop]
         C --> D[Catalog Search & Grounding Check]
@@ -52,12 +53,15 @@ flowchart TD
         H --> I[Razorpay Test Checkout Modal]
     end
 
-    subgraph MerchantExperience[" Merchant Revenue Recovery Experience"]
+    BuyerExperience -->|Order Abandonment / Payment Failure| MerchantExperience
+
+    subgraph MerchantExperience["💼 Merchant Revenue Recovery Experience"]
+        direction TB
         J[Failed Payment / Abandoned Cart Event] --> K[RevenueAgent Transaction Analysis]
         K --> L{Deterministic Policy Engine Bounds Check}
-        L -- Disallowed / Exceeds Ceiling --> M[ Policy Rejected / Abstained]
-        L -- Allowed & > ₹500 --> N[ Human Merchant Approval Required]
-        L -- Allowed & ≤ ₹500 --> O[ Auto-Action Eligible]
+        L -- Disallowed / Exceeds Ceiling --> M[🚫 Policy Rejected / Abstained]
+        L -- Allowed & > ₹500 --> N[⚠️ Human Merchant Approval Required]
+        L -- Allowed & ≤ ₹500 --> O[⚡ Auto-Action Eligible]
         N -- Merchant Sign-off --> P[RevenueActionTool Execution]
         O --> P
         P --> Q[Razorpay Payment Link Creation]
@@ -67,7 +71,7 @@ flowchart TD
         T --> U[HMAC SHA-256 Signature Verification & Idempotency Check]
         U --> V[PaymentStore State Transition: FAILED ➔ RECOVERED]
         V --> W[PAYMENT_RECOVERED Audit Log]
-        W --> X[Dashboard 3s Polling Detection ➔  PAYMENT RECOVERED]
+        W --> X[Dashboard 3s Polling Detection ➔ 🟢 PAYMENT RECOVERED]
     end
 ```
 
