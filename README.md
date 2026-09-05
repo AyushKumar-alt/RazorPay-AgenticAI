@@ -1,17 +1,32 @@
-#  NovaBazaar — Autonomous E-Commerce & Agentic Revenue Recovery Platform
+<div align="center">
 
-[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-razor--pay--agentic--ai.vercel.app-22c55e?style=for-the-badge&logo=vercel)](https://razor-pay-agentic-ai.vercel.app)
+![NovaBazaar Banner](./public/banner_hero.jpg)
+
+# 🛍️ NovaBazaar — Autonomous E-Commerce & Agentic Revenue Recovery Platform
+
+[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-agent--ai--six--iota.vercel.app-22c55e?style=for-the-badge&logo=vercel)](https://agent-ai-six-iota.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.8-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Gemini API](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-8e44ad?style=for-the-badge&logo=google-cloud)](https://ai.google.dev/)
 [![Razorpay](https://img.shields.io/badge/Razorpay-Payment%20Links%20%26%20Webhooks-02042b?style=for-the-badge&logo=razorpay)](https://razorpay.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
-> **NovaBazaar** is an end-to-end agentic e-commerce platform combining an **AI Buyer Shopping Assistant** with an **Autonomous Merchant Revenue Agent**. It bridges intelligent conversational commerce with deterministic merchant policy controls and real-time Razorpay payment recovery revalidation.
+</div>
 
 ---
 
-##  Key Highlights & Live Links
+## 📖 About the Project
+
+**NovaBazaar** is a next-generation, agentic e-commerce & payment recovery ecosystem that bridges conversational AI with real-world financial transactions. Powered by **Google Gemini 2.5 Flash** and integrated deeply with **Razorpay**, NovaBazaar addresses two massive friction points in modern online commerce:
+
+1. **For Shoppers (Conversational Discovery)**: Traditional e-commerce search requires navigating rigid filters and keyword queries. NovaBazaar introduces **Adam**, a multi-turn voice and text AI Buyer Assistant that understands shopping intents, dynamically manages cart state, performs stock validation, and pairs relevant companion accessories in real time.
+2. **For Merchants (Autonomous Revenue Recovery)**: Over 70% of online checkouts and payment links are abandoned due to timeouts, network drop-offs, or hesitation. NovaBazaar's **Revenue Recovery Agent** diagnoses payment failures, applies deterministic merchant policy guardrails, generates instant Razorpay Payment Links, and tracks live payment completion via cryptographic webhooks with 3-second realtime dashboard updates.
+
+> 🔒 **Security & Control First**: NovaBazaar enforces a zero-trust model. AI agents can recommend, curate, and formulate recovery plans, but **all financial order executions require explicit Human Approval**, and all webhook transitions are verified server-side with HMAC SHA-256 signatures.
+
+---
+
+## 🌟 Key Highlights & Live Links
 
 *  **Production App URL**: [https://agent-ai-six-iota.vercel.app](https://agent-ai-six-iota.vercel.app)
 *  **Merchant Revenue Dashboard**: [https://agent-ai-six-iota.vercel.app/revenue](https://agent-ai-six-iota.vercel.app/revenue)
@@ -272,3 +287,12 @@ Live Production Deployment: **[https://agent-ai-six-iota.vercel.app](https://age
 ## 📜 License
 
 Distributed under the MIT License. See `LICENSE` for details.
+
+---
+
+<div align="center">
+
+![NovaBazaar Footer Banner](./public/banner_footer.jpg)
+
+</div>
+
