@@ -1,6 +1,6 @@
 # 🚀 NovaBazaar — Autonomous E-Commerce & Agentic Revenue Recovery Platform
 
-[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-agent--ai--six--iota.vercel.app-22c55e?style=for-the-badge&logo=vercel)](https://agent-ai-six-iota.vercel.app/)
+[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-agent--ai--six--iota.vercel.app-22c55e?style=for-the-badge&logo=vercel)](razor-pay-agentic-ai.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.8-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Gemini API](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-8e44ad?style=for-the-badge&logo=google-cloud)](https://ai.google.dev/)
