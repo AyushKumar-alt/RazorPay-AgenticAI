@@ -15,18 +15,18 @@
 
 ---
 
-## 📖 About the Project
+##  About the Project
 
 **NovaBazaar** is a next-generation, agentic e-commerce & payment recovery ecosystem that bridges conversational AI with real-world financial transactions. Powered by **Google Gemini 2.5 Flash** and integrated deeply with **Razorpay**, NovaBazaar addresses two massive friction points in modern online commerce:
 
 1. **For Shoppers (Conversational Discovery)**: Traditional e-commerce search requires navigating rigid filters and keyword queries. NovaBazaar introduces **Adam**, a multi-turn voice and text AI Buyer Assistant that understands shopping intents, dynamically manages cart state, performs stock validation, and pairs relevant companion accessories in real time.
 2. **For Merchants (Autonomous Revenue Recovery)**: Over 70% of online checkouts and payment links are abandoned due to timeouts, network drop-offs, or hesitation. NovaBazaar's **Revenue Recovery Agent** diagnoses payment failures, applies deterministic merchant policy guardrails, generates instant Razorpay Payment Links, and tracks live payment completion via cryptographic webhooks with 3-second realtime dashboard updates.
 
-> 🔒 **Security & Control First**: NovaBazaar enforces a zero-trust model. AI agents can recommend, curate, and formulate recovery plans, but **all financial order executions require explicit Human Approval**, and all webhook transitions are verified server-side with HMAC SHA-256 signatures.
+>  **Security & Control First**: NovaBazaar enforces a zero-trust model. AI agents can recommend, curate, and formulate recovery plans, but **all financial order executions require explicit Human Approval**, and all webhook transitions are verified server-side with HMAC SHA-256 signatures.
 
 ---
 
-## 🌟 Key Highlights & Live Links
+##  Key Highlights & Live Links
 
 *  **Production App URL**: [https://agent-ai-six-iota.vercel.app](https://agent-ai-six-iota.vercel.app)
 *  **Merchant Revenue Dashboard**: [https://agent-ai-six-iota.vercel.app/revenue](https://agent-ai-six-iota.vercel.app/revenue)
