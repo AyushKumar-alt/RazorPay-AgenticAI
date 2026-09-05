@@ -1,6 +1,6 @@
-# 🚀 NovaBazaar — Autonomous E-Commerce & Agentic Revenue Recovery Platform
+#  NovaBazaar — Autonomous E-Commerce & Agentic Revenue Recovery Platform
 
-[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-agent--ai--six--iota.vercel.app-22c55e?style=for-the-badge&logo=vercel)](https://agent-ai-six-iota.vercel.app/)
+[![Live Production Demo](https://img.shields.io/badge/Live%20Demo-razor--pay--agentic--ai.vercel.app-22c55e?style=for-the-badge&logo=vercel)](https://razor-pay-agentic-ai.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.8-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Gemini API](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-8e44ad?style=for-the-badge&logo=google-cloud)](https://ai.google.dev/)
@@ -11,16 +11,16 @@
 
 ---
 
-## 🌟 Key Highlights & Live Links
+##  Key Highlights & Live Links
 
-* 🌐 **Production App URL**: [https://agent-ai-six-iota.vercel.app](https://agent-ai-six-iota.vercel.app)
-* 📊 **Merchant Revenue Dashboard**: [https://agent-ai-six-iota.vercel.app/revenue](https://agent-ai-six-iota.vercel.app/revenue)
-* 💳 **Payment Gateway Integration**: Razorpay Test Mode Payment Links & Cryptographic HMAC SHA-256 Webhooks
-* 🛡️ **Security Model**: Server-authoritative Single Source of Truth — client state spoofing strictly disallowed.
+*  **Production App URL**: [https://agent-ai-six-iota.vercel.app](https://agent-ai-six-iota.vercel.app)
+*  **Merchant Revenue Dashboard**: [https://agent-ai-six-iota.vercel.app/revenue](https://agent-ai-six-iota.vercel.app/revenue)
+*  **Payment Gateway Integration**: Razorpay Test Mode Payment Links & Cryptographic HMAC SHA-256 Webhooks
+*  **Security Model**: Server-authoritative Single Source of Truth — client state spoofing strictly disallowed.
 
 ---
 
-## 🏛️ System Architecture
+##  System Architecture
 
 NovaBazaar is built around a **Dual Agentic Architecture** separating buyer-side conversational discovery from merchant-side autonomous revenue recovery.
 
@@ -37,12 +37,12 @@ flowchart TD
         H --> I[Razorpay Test Checkout Modal]
     end
 
-    subgraph MerchantExperience["💼 Merchant Revenue Recovery Experience"]
+    subgraph MerchantExperience[" Merchant Revenue Recovery Experience"]
         J[Failed Payment / Abandoned Cart Event] --> K[RevenueAgent Transaction Analysis]
         K --> L{Deterministic Policy Engine Bounds Check}
-        L -- Disallowed / Exceeds Ceiling --> M[🚫 Policy Rejected / Abstained]
-        L -- Allowed & > ₹500 --> N[⚠️ Human Merchant Approval Required]
-        L -- Allowed & ≤ ₹500 --> O[⚡ Auto-Action Eligible]
+        L -- Disallowed / Exceeds Ceiling --> M[ Policy Rejected / Abstained]
+        L -- Allowed & > ₹500 --> N[ Human Merchant Approval Required]
+        L -- Allowed & ≤ ₹500 --> O[ Auto-Action Eligible]
         N -- Merchant Sign-off --> P[RevenueActionTool Execution]
         O --> P
         P --> Q[Razorpay Payment Link Creation]
@@ -52,7 +52,7 @@ flowchart TD
         T --> U[HMAC SHA-256 Signature Verification & Idempotency Check]
         U --> V[PaymentStore State Transition: FAILED ➔ RECOVERED]
         V --> W[PAYMENT_RECOVERED Audit Log]
-        W --> X[Dashboard 3s Polling Detection ➔ 🟢 PAYMENT RECOVERED]
+        W --> X[Dashboard 3s Polling Detection ➔  PAYMENT RECOVERED]
     end
 ```
 
@@ -129,40 +129,40 @@ RazorPay-AgenticAI/
 
 ## ⚡ Core Features
 
-### 1. 🛒 Autonomous AI Buyer Shopping Assistant
+### 1.  Autonomous AI Buyer Shopping Assistant
 * **Natural Language Shopping**: Extracts purchase intent, capacity, material, category, and budget constraints from conversational text or speech.
 * **Paired Companion Accessory Recommendations**: Automatically suggests complementary accessories (e.g. recommending an aluminum headphone stand for over-ear headphones).
 * **Instant Cart Operations**: AI tool registry directly executes cart additions, updates, removals, and multi-item checkout proposals.
 * **Human Approval Gate**: Every purchase proposal requires explicit customer sign-off before financial orders are instantiated.
 
-### 2. 💼 Merchant Revenue Recovery Agent
+### 2.  Merchant Revenue Recovery Agent
 * **Autonomous Opportunity Diagnosis**: Continuously inspects merchant transactions, diagnosing failure causes (e.g. gateway timeouts, OTP expirations, abandoned carts).
 * **Deterministic Policy Engine**: Enforces strict financial rules overriding any LLM hallucination risk:
-  * 🛑 **Discount Ceiling**: Maximum 10% discount allowance.
-  * 🛑 **Retry Cooldown**: 30-minute minimum cooldown between payment retry attempts.
-  * 🛑 **Max Retries**: Hard limit of 2 retry attempts per transaction.
-  * 🛑 **Human Sign-off Ceiling**: Any transaction or recovery exceeding **₹500** strictly requires human merchant approval.
+  *  **Discount Ceiling**: Maximum 10% discount allowance.
+  *  **Retry Cooldown**: 30-minute minimum cooldown between payment retry attempts.
+  *  **Max Retries**: Hard limit of 2 retry attempts per transaction.
+  *  **Human Sign-off Ceiling**: Any transaction or recovery exceeding **₹500** strictly requires human merchant approval.
 * **Server-Authoritative Razorpay Payment Links**: Generates real Razorpay recovery payment links (`https://rzp.io/rzp/...`) for approved opportunities.
-* **Real-Time Webhook Revalidation (3-Second Polling)**: The dashboard polls `/api/revenue/status` every 3 seconds while a recovery link is pending (`LINK_CREATED` / `PAYMENT_PENDING`). When Razorpay's `payment_link.paid` webhook arrives, backend state transitions from `FAILED` to `RECOVERED`, automatically updating the UI to **`🟢 PAYMENT RECOVERED`** without full page reloads.
+* **Real-Time Webhook Revalidation (3-Second Polling)**: The dashboard polls `/api/revenue/status` every 3 seconds while a recovery link is pending (`LINK_CREATED` / `PAYMENT_PENDING`). When Razorpay's `payment_link.paid` webhook arrives, backend state transitions from `FAILED` to `RECOVERED`, automatically updating the UI to **` PAYMENT RECOVERED`** without full page reloads.
 
 ---
 
-## 🔄 Merchant Lifecycle States
+##  Merchant Lifecycle States
 
 Every transaction card on the Merchant Dashboard clearly displays its progression:
 
 | Lifecycle State | Badge | Trigger / Description |
 | :--- | :--- | :--- |
 | **Opportunity Identified** | `Opportunity Identified` | Failure or cart abandonment detected by Revenue Agent. |
-| **Approval Required** | `⚠️ Approval Required (>₹500)` | Amount exceeds ₹500 threshold; requires merchant sign-off. |
-| **Auto-Action Eligible** | `⚡ Auto-Action Eligible (≤₹500)` | Amount is ≤₹500; auto-executable within policy bounds. |
-| **Policy Rejected** | `🚫 Policy Rejected` | Action violates policy bounds (e.g., cooldown active or max retries exceeded). |
-| **Payment Pending** | `🟡 PAYMENT PENDING` | Razorpay Payment Link generated; awaiting customer checkout payment. |
-| **Payment Recovered** | `🟢 PAYMENT RECOVERED` | Verified via Razorpay `payment_link.paid` webhook; displays Razorpay Payment ID & timestamp. |
+| **Approval Required** | ` Approval Required (>₹500)` | Amount exceeds ₹500 threshold; requires merchant sign-off. |
+| **Auto-Action Eligible** | ` Auto-Action Eligible (≤₹500)` | Amount is ≤₹500; auto-executable within policy bounds. |
+| **Policy Rejected** | ` Policy Rejected` | Action violates policy bounds (e.g., cooldown active or max retries exceeded). |
+| **Payment Pending** | ` PAYMENT PENDING` | Razorpay Payment Link generated; awaiting customer checkout payment. |
+| **Payment Recovered** | ` PAYMENT RECOVERED` | Verified via Razorpay `payment_link.paid` webhook; displays Razorpay Payment ID & timestamp. |
 
 ---
 
-## 🔒 Security & Single Source of Truth
+##  Security & Single Source of Truth
 
 * **Cryptographic HMAC SHA-256 Webhook Verification**: All incoming webhooks pass through `RazorpayService.verifyWebhookSignature`, comparing `x-razorpay-signature` against request raw body using timing-safe buffer comparison.
 * **Webhook Idempotency Guarantee**: Prevents duplicate webhook processing using `PaymentStore.hasProcessedWebhookEvent`.
@@ -171,7 +171,7 @@ Every transaction card on the Merchant Dashboard clearly displays its progressio
 
 ---
 
-## 🛠️ API Reference
+##  API Reference
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
@@ -187,7 +187,7 @@ Every transaction card on the Merchant Dashboard clearly displays its progressio
 
 ---
 
-## 💻 Local Development Setup
+##  Local Development Setup
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -217,7 +217,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🧪 Automated Test Suites
+##  Automated Test Suites
 
 NovaBazaar includes extensive unit and integration test coverage across all agentic and payment systems:
 
@@ -243,17 +243,17 @@ npx tsx lib/purchase/purchase.test.ts
 ```
 
 ### Test Coverage Summary
-* ✅ **19/19 Passed**: Real-Time Dashboard & Webhook Polling Suite
-* ✅ **24/24 Passed**: Revenue Action Tool Suite
-* ✅ **12/12 Passed**: Revenue Agent Policy Evaluation Suite
-* ✅ **8/8 Passed**: Revenue Integration & Security Suite
-* ✅ **10/10 Passed**: Razorpay Webhook Signature & State Machine Suite
-* ✅ **10/10 Passed**: Razorpay Payment Link Creation Suite
-* ✅ **29/29 Passed**: Buyer Agent & Purchase Proposal Suite
+*  **19/19 Passed**: Real-Time Dashboard & Webhook Polling Suite
+*  **24/24 Passed**: Revenue Action Tool Suite
+*  **12/12 Passed**: Revenue Agent Policy Evaluation Suite
+*  **8/8 Passed**: Revenue Integration & Security Suite
+*  **10/10 Passed**: Razorpay Webhook Signature & State Machine Suite
+*  **10/10 Passed**: Razorpay Payment Link Creation Suite
+*  **29/29 Passed**: Buyer Agent & Purchase Proposal Suite
 
 ---
 
-## 🚢 Production Build & Deployment
+##  Production Build & Deployment
 
 NovaBazaar is optimized for deployment on Vercel:
 
