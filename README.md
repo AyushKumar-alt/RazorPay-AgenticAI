@@ -58,7 +58,7 @@ flowchart TD
 
 ---
 
-## 📁 Project File Structure
+##  Project File Structure
 
 ```text
 RazorPay-AgenticAI/
