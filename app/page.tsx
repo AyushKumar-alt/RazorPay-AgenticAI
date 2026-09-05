@@ -497,8 +497,11 @@ export default function Home() {
       setPaymentTransaction(transaction);
       setPaymentStatus('PAYMENT_PENDING');
 
-      // Check if using Mock Provider
-      if (keyId === 'rzp_test_mock_key' || transaction.razorpayOrderId.startsWith('order_mock_')) {
+      const effectiveKeyId = keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_mock_key';
+      const isRealKey = effectiveKeyId.startsWith('rzp_test_') && effectiveKeyId !== 'rzp_test_mock_key';
+
+      // Only auto-bypass if explicitly using mock key AND no real Razorpay Key ID is configured
+      if (!isRealKey && (keyId === 'rzp_test_mock_key' || transaction.razorpayOrderId.startsWith('order_mock_'))) {
         if (session) {
           sessionServiceRef.current.updateState(session.sessionId, 'VERIFYING');
           setSession({ ...sessionServiceRef.current.getSession(session.sessionId)! });
@@ -514,7 +517,7 @@ export default function Home() {
             razorpayPaymentId: mockPaymentId,
             razorpaySignature: 'mock_valid_signature',
           }),
-});
+        });
 
         const verifyData = await verifyRes.json();
         if (verifyData.success) {
@@ -541,12 +544,12 @@ export default function Home() {
       }
 
       const options = {
-        key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_mock_key',
+        key: effectiveKeyId,
         amount: transaction.amountPaise,
         currency: transaction.currency,
         name: 'NovaBazaar',
         description: proposal.productName || 'NovaBazaar Order',
-        order_id: transaction.razorpayOrderId,
+        order_id: transaction.razorpayOrderId.startsWith('order_mock_') ? undefined : transaction.razorpayOrderId,
         handler: async (response: any) => {
           setPaymentLoading(true);
           if (session) {
