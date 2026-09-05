@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApprovalService } from '@/lib/purchase/approval.service';
+import { PurchaseService } from '@/lib/purchase/purchase.service';
 
 export async function POST(
   request: NextRequest,
@@ -23,6 +24,17 @@ export async function POST(
 
     const result = await ApprovalService.rejectProposal(id);
     if (!result.success) {
+      if (result.error?.code === 'INVALID_PROPOSAL_STATUS') {
+        const proposal = PurchaseService.getProposal(id);
+        if (proposal && proposal.status === 'REJECTED') {
+          return NextResponse.json({
+            success: true,
+            proposal,
+            message: 'Proposal is already rejected.',
+          });
+        }
+      }
+
       return NextResponse.json(result, { status: 400 });
     }
 

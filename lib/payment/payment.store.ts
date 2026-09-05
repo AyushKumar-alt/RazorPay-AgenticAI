@@ -1,11 +1,25 @@
 import { PaymentTransaction, PaymentStatus } from '@/types/payment';
 
+const globalForPayment = globalThis as unknown as {
+  __nova_transactions__?: Map<string, PaymentTransaction>;
+  __nova_proposalToTx__?: Map<string, string>;
+  __nova_orderToTx__?: Map<string, string>;
+  __nova_paymentToTx__?: Map<string, string>;
+  __nova_webhooks__?: Set<string>;
+};
+
+if (!globalForPayment.__nova_transactions__) globalForPayment.__nova_transactions__ = new Map();
+if (!globalForPayment.__nova_proposalToTx__) globalForPayment.__nova_proposalToTx__ = new Map();
+if (!globalForPayment.__nova_orderToTx__) globalForPayment.__nova_orderToTx__ = new Map();
+if (!globalForPayment.__nova_paymentToTx__) globalForPayment.__nova_paymentToTx__ = new Map();
+if (!globalForPayment.__nova_webhooks__) globalForPayment.__nova_webhooks__ = new Set();
+
 export class PaymentStore {
-  private static transactions = new Map<string, PaymentTransaction>();
-  private static proposalToTransaction = new Map<string, string>();
-  private static orderToTransaction = new Map<string, string>();
-  private static paymentToTransaction = new Map<string, string>();
-  private static processedWebhookEvents = new Set<string>();
+  private static transactions = globalForPayment.__nova_transactions__!;
+  private static proposalToTransaction = globalForPayment.__nova_proposalToTx__!;
+  private static orderToTransaction = globalForPayment.__nova_orderToTx__!;
+  private static paymentToTransaction = globalForPayment.__nova_paymentToTx__!;
+  private static processedWebhookEvents = globalForPayment.__nova_webhooks__!;
 
   // Valid State Transitions Map
   private static ALLOWED_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
